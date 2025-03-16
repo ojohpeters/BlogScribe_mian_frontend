@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Input } from "@/components/ui/input"
 import { Slider } from "@/components/ui/slider"
 import { useToast } from "@/components/ui/use-toast"
-import { Loader2, ArrowLeft, Save, RefreshCw, Wand2, AlertTriangle, CheckCircle, AlertCircle, X, TrendingUp } from "lucide-react"
+import { Loader2, ArrowLeft, Save, RefreshCw, Wand2, AlertTriangle, CheckCircle, AlertCircle, X, TrendingUp, PenTool } from "lucide-react"
 import { isAuthenticated, fetchWithAuth, addRecentPost } from "@/lib/utils"
 import dynamic from "next/dynamic"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -19,6 +19,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import type { CheckedState } from "@radix-ui/react-checkbox"
+import { useLoadingState } from "@/lib/hooks/use-loading-state"
 
 // Import the full-featured markdown editor
 const MDEditor = dynamic(
@@ -99,6 +100,26 @@ interface SeoAnalytics {
   };
 }
 
+// Loading animation component
+const BlogLoadingAnimation = ({ message }: { message: string }) => {
+  return (
+    <div className="flex flex-col items-center justify-center p-8 space-y-4">
+      <div className="relative">
+        <div className="w-16 h-16 rounded-full bg-primary/10 animate-pulse"></div>
+        <PenTool className="w-8 h-8 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-primary animate-bounce" />
+      </div>
+      <div className="text-center space-y-2">
+        <p className="text-lg font-medium text-primary">{message}</p>
+        <div className="flex space-x-2 justify-center">
+          <div className="w-2 h-2 bg-primary rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+          <div className="w-2 h-2 bg-primary rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+          <div className="w-2 h-2 bg-primary rounded-full animate-bounce"></div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function Paraphrase() {
   const [content, setContent] = useState("")
   const [originalTitle, setOriginalTitle] = useState("")
@@ -116,6 +137,7 @@ export default function Paraphrase() {
   const [seoAnalytics, setSeoAnalytics] = useState<SeoAnalytics | null>(null)
   const { toast } = useToast()
   const router = useRouter()
+  const { isLoading: globalLoading, withLoading } = useLoadingState()
 
   // Calculate word count
   const wordCount = content.trim().split(/\s+/).filter(word => word.length > 0).length
@@ -225,141 +247,73 @@ export default function Paraphrase() {
 
   // Update the handleParaphraseAgain function to use fetchWithAuth
   const handleParaphraseAgain = async () => {
-    // Check if user has active plan before making the request
-    if (!hasActivePlan) {
+    if (!isAuthenticated()) {
       toast({
-        title: "Subscription required",
-        description: "Your subscription has expired. Please renew to use this feature.",
+        title: "Authentication required",
+        description: "Please log in to access this feature.",
         variant: "destructive",
       })
-      router.push("/dashboard/subscription")
+      router.push("/auth/login?returnUrl=" + encodeURIComponent(window.location.pathname))
+      return
+    }
+
+    if (!content) {
+      toast({
+        title: "Content required",
+        description: "Please enter some content to paraphrase.",
+        variant: "destructive",
+      })
       return
     }
 
     setIsLoading(true)
     try {
+      await withLoading(async () => {
       const response = await fetchWithAuth(
-        "http://127.0.0.1:8000/api/reparaphrase/",
+          "http://127.0.0.1:8000/api/paraphrase/",
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            content,
-            word_length: wordLength[0],
-            keyword,
-            url: originalUrl,
-            title: originalTitle,
-          }),
+            body: JSON.stringify({ content }),
         },
         router,
         toast,
       )
 
-      // Check for subscription-related errors
       if (!response.ok) {
-        if (response.status === 403) {
-          const errorData = await response.json()
-          if (errorData.detail && errorData.detail.includes("subscription")) {
-            toast({
-              title: "Subscription required",
-              description: "Your subscription has expired. Please renew to use this feature.",
-              variant: "destructive",
-            })
-            router.push("/dashboard/subscription")
-            return
-          }
-        }
+          throw new Error("Failed to paraphrase content")
       }
 
       const data = await response.json()
 
       if (data.error) {
-        // Check if error is subscription related
-        if (data.error.toLowerCase().includes("subscription")) {
-          toast({
-            title: "Subscription required",
-            description: "Your subscription has expired. Please renew to use this feature.",
-            variant: "destructive",
-          })
-          router.push("/dashboard/subscription")
-          return
-        }
-
         toast({
           title: "Error",
           description: data.error,
           variant: "destructive",
         })
-      } else if (data.Paraphrased) {
-        setContent(data.Paraphrased)
-        // Populate SEO fields if available
-        if (data.seo) {
-          try {
-            const seoData = typeof data.seo === 'string' 
-              ? JSON.parse(data.seo) 
-              : data.seo;
-            
-            setMetaDescription(seoData.meta_description || "")
-            setFocusKeywords(seoData.focus_keywords || [])
-            setSeoAnalysis({
-              score: 0, // This will be updated when analyzing
-              suggestions: [], // These will be generated when analyzing
-              keywordDensity: {}, // This will be updated when analyzing
-              readabilityScore: 0, // This will be updated when analyzing
-              titleSuggestions: [] // This will be updated when analyzing
-            })
-          } catch (error) {
-            console.error("Error parsing SEO data:", error)
+        } else {
+          const paraphrasedContent = {
+            ...data,
+            content: data.Paraphrased || data.paraphrased_content || data.Post || "",
+            originalContent: content,
           }
-        }
-        localStorage.setItem("paraphrasedContent", JSON.stringify(data))
-        toast({
-          title: "Success",
-          description: "Content paraphrased successfully",
-        })
-      } else if (data.success || data.Post) {
-        // Update content based on response format
-        if (data.paraphrased_content) {
-          setContent(data.paraphrased_content)
-        } else if (data.Post) {
-          setContent(data.Post)
-        }
 
-        // Populate SEO fields if available
-        if (data.seo) {
-          try {
-            const seoData = typeof data.seo === 'string' 
-              ? JSON.parse(data.seo) 
-              : data.seo;
-            
-            setMetaDescription(seoData.meta_description || "")
-            setFocusKeywords(seoData.focus_keywords || [])
-            setSeoAnalysis({
-              score: 0, // This will be updated when analyzing
-              suggestions: [], // These will be generated when analyzing
-              keywordDensity: {}, // This will be updated when analyzing
-              readabilityScore: 0, // This will be updated when analyzing
-              titleSuggestions: [] // This will be updated when analyzing
-            })
-          } catch (error) {
-            console.error("Error parsing SEO data:", error)
-          }
-        }
-
-        // Update localStorage
-        localStorage.setItem("paraphrasedContent", JSON.stringify(data))
+          localStorage.setItem("paraphrasedContent", JSON.stringify(paraphrasedContent))
+          router.push("/paraphrase")
 
         toast({
           title: "Success",
           description: "Content paraphrased successfully",
         })
       }
+      })
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to paraphrase. Please try again.",
+        description: "Failed to paraphrase content. Please try again.",
         variant: "destructive",
       })
     } finally {
@@ -480,7 +434,7 @@ export default function Paraphrase() {
         // Save to recent posts
         addRecentPost({
           title: originalTitle,
-          url: originalUrl,
+                url: originalUrl,
           date: new Date().toISOString(),
           excerpt: content.substring(0, 150) + "..."
         });

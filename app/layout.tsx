@@ -9,6 +9,7 @@ import { SubscriptionBanner } from "@/components/ui/subscription-banner"
 import { UserProvider } from "@/lib/user-context"
 import { SubscriptionProvider } from "@/lib/subscription-context"
 import "./globals.css"
+import { LoadingProvider } from "@/contexts/loading-context"
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" })
 
@@ -27,26 +28,26 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} font-sans antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
-          <UserProvider>
-            <SubscriptionProvider>
-              <div className="relative min-h-screen flex flex-col bg-gradient-to-b from-gray-50 to-white dark:from-gray-950 dark:to-gray-900">
-                <DesktopNav />
-                <main className="flex-grow container mx-auto px-4 sm:px-6 py-6 md:py-10">
-                  {/* SubscriptionBanner will only show for authenticated users with expired subscriptions */}
-                  <SubscriptionBanner />
-                  {children}
-                </main>
-                <MobileNav />
-              </div>
-              <Toaster />
-            </SubscriptionProvider>
-          </UserProvider>
+          <LoadingProvider>
+            <UserProvider>
+              <SubscriptionProvider>
+                <div className="relative min-h-screen flex flex-col bg-gradient-to-b from-gray-50 to-white dark:from-gray-950 dark:to-gray-900">
+                  <DesktopNav />
+                  <main className="flex-grow container mx-auto px-4 sm:px-6 py-6 md:py-10">
+                    {/* SubscriptionBanner will only show for authenticated users with expired subscriptions */}
+                    <SubscriptionBanner />
+                    {children}
+                  </main>
+                  <MobileNav />
+                </div>
+                <Toaster />
+              </SubscriptionProvider>
+            </UserProvider>
+          </LoadingProvider>
         </ThemeProvider>
       </body>
     </html>
   )
 }
-
-
 
 import './globals.css'

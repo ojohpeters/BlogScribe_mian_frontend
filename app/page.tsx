@@ -243,16 +243,41 @@ export default function Home() {
     <div className="flex flex-col min-h-screen">
       <main className="flex-grow">
         {/* Hero Section */}
-        <section className="bg-primary text-primary-foreground py-16 sm:py-24">
-          <div className="container mx-auto px-4 text-center">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1 }}>
+        <section className="relative bg-gradient-to-b from-primary via-primary/90 to-primary/80 text-primary-foreground py-16 sm:py-24 overflow-hidden">
+          {/* Background Pattern */}
+          <div className="absolute inset-0 bg-grid-white/[0.05] bg-[size:60px_60px]" />
+          <div className="absolute inset-0 bg-gradient-to-t from-primary/20 to-transparent" />
+          
+          {/* Animated Background Elements */}
+          <div className="absolute inset-0 overflow-hidden">
+            <div className="absolute -top-40 -right-40 w-80 h-80 bg-white/10 rounded-full blur-3xl animate-blob" />
+            <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-white/10 rounded-full blur-3xl animate-blob animation-delay-2000" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-white/10 rounded-full blur-3xl animate-blob animation-delay-4000" />
+          </div>
+
+          <div className="container relative mx-auto px-4 text-center">
+            <motion.div 
+              initial={{ opacity: 0 }} 
+              animate={{ opacity: 1 }} 
+              transition={{ duration: 1 }}
+              className="relative z-10"
+            >
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.2 }}
+                className="inline-block mb-4 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20"
+              >
+                <span className="text-sm font-medium">AI-Powered Blog Management</span>
+              </motion.div>
+
               <motion.h2
-                className="text-3xl sm:text-5xl font-bold mb-6"
+                className="text-4xl sm:text-6xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-white to-white/80"
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{
                   duration: 0.8,
-                  delay: 0.2,
+                  delay: 0.4,
                   type: "spring",
                   stiffness: 100,
                 }}
@@ -268,7 +293,7 @@ export default function Home() {
                     <AnimatePresence mode="wait">
                       <motion.span
                         key={typedText}
-                        className="text-white dark:text-black font-bold"
+                        className="text-white font-bold"
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -10 }}
@@ -276,7 +301,7 @@ export default function Home() {
                       >
                         {typedText}
                         <motion.span
-                          className="inline-block w-1 h-7 bg-white dark:bg-black ml-0.5"
+                          className="inline-block w-1 h-7 bg-white ml-0.5"
                           animate={{ opacity: [1, 0] }}
                           transition={{ duration: 0.6, repeat: Number.POSITIVE_INFINITY, repeatType: "reverse" }}
                         />
@@ -288,16 +313,14 @@ export default function Home() {
               </div>
 
               <motion.p
-                className="text-lg sm:text-xl mb-10 max-w-3xl mx-auto leading-relaxed"
+                className="text-lg sm:text-xl mb-10 max-w-3xl mx-auto leading-relaxed text-white/90"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.6 }}
               >
                 Revolutionize your content workflow with our comprehensive WordPress companion. Import posts directly
                 from up-to-date sources, transform them with state-of-the-art AI, enhance SEO performance, and publish
-                polished content—all from a single dashboard. Our platform eliminates content creation bottlenecks,
-                saving you hours of work while maintaining your unique voice and boosting engagement across your entire
-                blog.
+                polished content—all from a single dashboard.
               </motion.p>
 
               <motion.div
@@ -307,16 +330,23 @@ export default function Home() {
                 transition={{ duration: 0.8, delay: 0.8 }}
               >
                 <Link href="/auth/register">
-                  <Button size="lg" className="w-full sm:w-auto group relative overflow-hidden">
+                  <Button 
+                    size="lg" 
+                    className="w-full sm:w-auto group relative overflow-hidden bg-white text-primary hover:bg-white/90"
+                  >
                     <span className="relative z-10 flex items-center">
                       Get Started Free
                       <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
                     </span>
-                    <span className="absolute inset-0 bg-primary-foreground/10 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-300"></span>
+                    <span className="absolute inset-0 bg-white/20 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-300"></span>
                   </Button>
                 </Link>
                 <Link href="#pricing">
-                  <Button size="lg" variant="secondary" className="w-full sm:w-auto">
+                  <Button 
+                    size="lg" 
+                    variant="outline" 
+                    className="w-full sm:w-auto border-primary/20 hover:bg-primary/10 text-primary hover:text-primary dark:border-white/20 dark:hover:bg-white/10 dark:text-white dark:hover:text-white"
+                  >
                     View Pricing
                   </Button>
                 </Link>
@@ -326,12 +356,22 @@ export default function Home() {
         </section>
 
         {/* Features Section */}
-        <section className="py-16 sm:py-24">
+        <section className="py-16 sm:py-24 bg-background">
           <div className="container mx-auto px-4">
-            <h2 className="text-2xl sm:text-3xl font-bold text-center mb-6">Powerful Features</h2>
-            <p className="text-center text-muted-foreground max-w-2xl mx-auto mb-12">
-              Our comprehensive toolkit is designed to streamline your content creation process from start to finish
-            </p>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8 }}
+              className="text-center mb-12"
+            >
+              <h2 className="text-3xl sm:text-4xl font-bold mb-4 bg-gradient-to-r from-primary to-blue-600 dark:from-blue-400 dark:to-blue-300 bg-clip-text text-transparent">
+                Powerful Features
+              </h2>
+              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                Our comprehensive toolkit is designed to streamline your content creation process from start to finish
+              </p>
+            </motion.div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {[
@@ -347,8 +387,7 @@ export default function Home() {
                 },
                 {
                   title: "URL Paraphraser",
-                  description:
-                    "Instantly rewrite content from any URL while preserving the original meaning and structure",
+                  description: "Instantly rewrite content from any URL while preserving the original meaning and structure",
                   icon: <Globe className="h-10 w-10 text-primary" />,
                 },
                 {
@@ -358,8 +397,7 @@ export default function Home() {
                 },
                 {
                   title: "Instant Publishing",
-                  description:
-                    "Create and publish new blog posts directly to your WordPress site without switching platforms",
+                  description: "Create and publish new blog posts directly to your WordPress site without switching platforms",
                   icon: <Zap className="h-10 w-10 text-primary" />,
                 },
                 {
@@ -371,12 +409,13 @@ export default function Home() {
                 <motion.div
                   key={index}
                   initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
                   transition={{ duration: 0.5, delay: index * 0.1 }}
                 >
-                  <Card className="flex flex-col h-full border-none shadow-md hover:shadow-lg transition-shadow duration-300">
+                  <Card className="flex flex-col h-full border-none shadow-lg hover:shadow-xl transition-all duration-300 bg-card/50 backdrop-blur-sm hover:bg-card/80">
                     <CardHeader className="pb-2">
-                      <div className="mb-4">{feature.icon}</div>
+                      <div className="mb-4 p-2 w-fit rounded-lg bg-primary/10">{feature.icon}</div>
                       <CardTitle className="text-xl">{feature.title}</CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -390,71 +429,121 @@ export default function Home() {
         </section>
 
         {/* Benefits Section */}
-        <section className="py-16 sm:py-20 bg-secondary/50">
-          <div className="container mx-auto px-4 text-center">
-            <h2 className="text-2xl sm:text-3xl font-bold mb-6">Why Choose Us</h2>
+        <section className="py-16 sm:py-20 bg-secondary/50 relative overflow-hidden">
+          {/* Background Pattern */}
+          <div className="absolute inset-0 bg-grid-black/[0.05] dark:bg-grid-white/[0.05] bg-[size:60px_60px]" />
+          
+          <div className="container relative mx-auto px-4 text-center">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8 }}
+              className="mb-12"
+            >
+              <h2 className="text-3xl sm:text-4xl font-bold mb-4 bg-gradient-to-r from-primary to-blue-600 dark:from-blue-400 dark:to-blue-300 bg-clip-text text-transparent">
+                Why Choose Us
+              </h2>
+            </motion.div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-12">
-              <div className="flex flex-col items-center">
-                <div className="bg-primary/10 p-4 rounded-full mb-4">
-                  <Clock className="h-8 w-8 text-primary" />
-                </div>
-                <h3 className="text-xl font-semibold mb-2">Save Time</h3>
-                <p className="text-muted-foreground">
-                  Reduce content creation time by up to 70% with our streamlined workflow
-                </p>
-              </div>
-              <div className="flex flex-col items-center">
-                <div className="bg-primary/10 p-4 rounded-full mb-4">
-                  <Shield className="h-8 w-8 text-primary" />
-                </div>
-                <h3 className="text-xl font-semibold mb-2">Unique Content</h3>
-                <p className="text-muted-foreground">
-                  Generate 100% unique content that passes plagiarism checks while maintaining your voice
-                </p>
-              </div>
-              <div className="flex flex-col items-center">
-                <div className="bg-primary/10 p-4 rounded-full mb-4">
-                  <Sparkles className="h-8 w-8 text-primary" />
-                </div>
-                <h3 className="text-xl font-semibold mb-2">Boost Engagement</h3>
-                <p className="text-muted-foreground">
-                  Improve reader engagement with professionally optimized and polished content
-                </p>
-              </div>
+              {[
+                {
+                  title: "Save Time",
+                  description: "Reduce content creation time by up to 70% with our streamlined workflow",
+                  icon: <Clock className="h-8 w-8 text-primary" />,
+                },
+                {
+                  title: "Unique Content",
+                  description: "Generate 100% unique content that passes plagiarism checks while maintaining your voice",
+                  icon: <Shield className="h-8 w-8 text-primary" />,
+                },
+                {
+                  title: "Boost Engagement",
+                  description: "Improve reader engagement with professionally optimized and polished content",
+                  icon: <Sparkles className="h-8 w-8 text-primary" />,
+                },
+              ].map((benefit, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  className="flex flex-col items-center p-6 rounded-xl bg-background/50 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300"
+                >
+                  <div className="p-4 rounded-full bg-primary/10 mb-4">
+                    {benefit.icon}
+                  </div>
+                  <h3 className="text-xl font-semibold mb-2">{benefit.title}</h3>
+                  <p className="text-muted-foreground">{benefit.description}</p>
+                </motion.div>
+              ))}
             </div>
           </div>
         </section>
 
-        {/* Try It Now Section for non-authenticated users */}
-        <section className="py-16 sm:py-20 bg-secondary">
-          <div className="container mx-auto px-4 text-center">
-            <h2 className="text-2xl sm:text-3xl font-bold mb-4">Try It Now</h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
-              Experience the power of our AI tools with a free sample. No login required.
-            </p>
-            <Button size="lg" onClick={handleTryItNow} disabled={isLoading} className="relative group overflow-hidden">
-              <span className="relative z-10 flex items-center">
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Processing...
-                  </>
-                ) : (
-                  <>
-                    Fetch Latest News
-                    <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
-                  </>
-                )}
-              </span>
-              <span className="absolute inset-0 bg-primary-foreground/10 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-300"></span>
-            </Button>
+        {/* Try It Now Section */}
+        <section className="py-16 sm:py-20 bg-secondary relative overflow-hidden">
+          {/* Background Pattern */}
+          <div className="absolute inset-0 bg-grid-black/[0.05] dark:bg-grid-white/[0.05] bg-[size:60px_60px]" />
+          
+          <div className="container relative mx-auto px-4 text-center">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8 }}
+            >
+              <h2 className="text-3xl sm:text-4xl font-bold mb-4 bg-gradient-to-r from-primary to-blue-600 dark:from-blue-400 dark:to-blue-300 bg-clip-text text-transparent">
+                Try It Now
+              </h2>
+              <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
+                Experience the power of our AI tools with a free sample. No login required.
+              </p>
+              <Button 
+                size="lg" 
+                onClick={handleTryItNow} 
+                disabled={isLoading} 
+                className="relative group overflow-hidden bg-primary hover:bg-primary/90"
+              >
+                <span className="relative z-10 flex items-center">
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      Fetch Latest News
+                      <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
+                    </>
+                  )}
+                </span>
+                <span className="absolute inset-0 bg-primary-foreground/10 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-300"></span>
+              </Button>
+            </motion.div>
           </div>
         </section>
 
         {/* Pricing Section */}
-        <section id="pricing" className="py-16 sm:py-20">
+        <section id="pricing" className="py-16 sm:py-20 bg-background">
           <div className="container mx-auto px-4">
-            <h2 className="text-2xl sm:text-3xl font-bold text-center mb-12">Simple Pricing</h2>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8 }}
+              className="text-center mb-12"
+            >
+              <h2 className="text-3xl sm:text-4xl font-bold mb-4 bg-gradient-to-r from-primary to-blue-600 dark:from-blue-400 dark:to-blue-300 bg-clip-text text-transparent">
+                Simple Pricing
+              </h2>
+              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                Choose the perfect plan for your blog management needs
+              </p>
+            </motion.div>
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               <PricingPlans showFeaturedOnly={false} />
             </div>

@@ -6,10 +6,31 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { useToast } from "@/components/ui/use-toast"
-import { Loader2, ExternalLink, ArrowRight } from "lucide-react"
+import { Loader2, ExternalLink, ArrowRight, PenTool } from "lucide-react"
 import { isAuthenticated, fetchWithAuth } from "@/lib/utils"
 import { useUser } from "@/lib/user-context"
 import { useSubscription } from "@/lib/subscription-context"
+import { useLoadingState } from "@/lib/hooks/use-loading-state"
+
+// Loading animation component
+const BlogLoadingAnimation = ({ message }: { message: string }) => {
+  return (
+    <div className="flex flex-col items-center justify-center p-8 space-y-4">
+      <div className="relative">
+        <div className="w-16 h-16 rounded-full bg-primary/10 animate-pulse"></div>
+        <PenTool className="w-8 h-8 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-primary animate-bounce" />
+      </div>
+      <div className="text-center space-y-2">
+        <p className="text-lg font-medium text-primary">{message}</p>
+        <div className="flex space-x-2 justify-center">
+          <div className="w-2 h-2 bg-primary rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+          <div className="w-2 h-2 bg-primary rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+          <div className="w-2 h-2 bg-primary rounded-full animate-bounce"></div>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 export default function MakePost() {
   const [posts, setPosts] = useState<{ title: string; url: string }[]>([])
@@ -20,6 +41,7 @@ export default function MakePost() {
   const router = useRouter()
   const { user } = useUser()
   const { hasActivePlan, isLoading: isLoadingSubscription } = useSubscription()
+  const { withLoading } = useLoadingState()
 
   useEffect(() => {
     // Check if user is authenticated
@@ -61,49 +83,49 @@ export default function MakePost() {
     }
   }, [router, toast])
 
-  // Add error handling for subscription-related errors
+  // Update fetchUrls to use global loading
   const fetchUrls = async () => {
     setIsLoading(true)
     try {
-      const response = await fetchWithAuth(
-        "http://127.0.0.1:8000/api/fetch-news/",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
+      await withLoading(async () => {
+        const response = await fetchWithAuth(
+          "http://127.0.0.1:8000/api/fetch-news/",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
           },
-        },
-        router,
-        toast
-      )
+          router,
+          toast
+        )
 
-      if (!response.ok) {
-        // Check for subscription-related errors
-        if (response.status === 403) {
-          const errorData = await response.json()
-          if (errorData.detail && errorData.detail.includes("subscription")) {
-            toast({
-              title: "Subscription required",
-              description: "Your subscription has expired. Please renew to use this feature.",
-              variant: "destructive",
-            })
-            router.push("/dashboard/subscription")
-            return
+        if (!response.ok) {
+          if (response.status === 403) {
+            const errorData = await response.json()
+            if (errorData.detail && errorData.detail.includes("subscription")) {
+              toast({
+                title: "Subscription required",
+                description: "Your subscription has expired. Please renew to use this feature.",
+                variant: "destructive",
+              })
+              router.push("/dashboard/subscription")
+              return
+            }
           }
+          return
         }
-        return
-      }
 
-      const data = await response.json()
-      const postsArray = Object.entries(data).map(([title, url]) => ({ title, url: url as string }))
-      setPosts(postsArray)
+        const data = await response.json()
+        const postsArray = Object.entries(data).map(([title, url]) => ({ title, url: url as string }))
+        setPosts(postsArray)
 
-      toast({
-        title: "Posts fetched successfully",
-        description: `Retrieved ${postsArray.length} posts.`,
+        toast({
+          title: "Posts fetched successfully",
+          description: `Retrieved ${postsArray.length} posts.`,
+        })
       })
     } catch (error) {
-      // Only show error message if it wasn't already handled
       if (!(error instanceof Error && error.message === "Session expired")) {
         toast({
           title: "Error fetching posts",
@@ -116,9 +138,8 @@ export default function MakePost() {
     }
   }
 
-  // Update the handleParaphrase function to use the subscription context
+  // Update handleParaphrase to use global loading
   const handleParaphrase = async (title: string, url: string) => {
-    // Check if user has active plan before making the request
     if (!hasActivePlan) {
       toast({
         title: "Subscription required",
@@ -131,24 +152,40 @@ export default function MakePost() {
 
     setIsParaphrasing(true)
     try {
-      const response = await fetchWithAuth(
-        "http://127.0.0.1:8000/api/paraphrase/",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
+      await withLoading(async () => {
+        const response = await fetchWithAuth(
+          "http://127.0.0.1:8000/api/paraphrase/",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ title, url }),
           },
-          body: JSON.stringify({ title, url }),
-        },
-        router,
-        toast
-      )
+          router,
+          toast
+        )
 
-      if (!response.ok) {
-        // Check for subscription-related errors
-        if (response.status === 403) {
-          const errorData = await response.json()
-          if (errorData.detail && errorData.detail.includes("subscription")) {
+        if (!response.ok) {
+          if (response.status === 403) {
+            const errorData = await response.json()
+            if (errorData.detail && errorData.detail.includes("subscription")) {
+              toast({
+                title: "Subscription required",
+                description: "Your subscription has expired. Please renew to use this feature.",
+                variant: "destructive",
+              })
+              router.push("/dashboard/subscription")
+              return
+            }
+          }
+          return
+        }
+
+        const data = await response.json()
+
+        if (data.error) {
+          if (data.error.toLowerCase().includes("subscription")) {
             toast({
               title: "Subscription required",
               description: "Your subscription has expired. Please renew to use this feature.",
@@ -157,54 +194,30 @@ export default function MakePost() {
             router.push("/dashboard/subscription")
             return
           }
-        }
 
-        // Don't throw an error here, just return to avoid double error messages
-        return
-      }
+          if (data.error === "Your daily request limit is reached") {
+            toast({
+              title: "Daily limit reached",
+              description:
+                "You've reached your daily request limit. Upgrade to a higher plan for more requests or try again tomorrow.",
+              variant: "destructive",
+            })
+            router.push("/pricing")
+            return
+          }
 
-      const data = await response.json()
-
-      // Don't throw an error here, just handle it directly
-      if (data.error) {
-        // Check if error is subscription related
-        if (data.error.toLowerCase().includes("subscription")) {
           toast({
-            title: "Subscription required",
-            description: "Your subscription has expired. Please renew to use this feature.",
+            title: "Paraphrasing error",
+            description: data.error,
             variant: "destructive",
           })
-          router.push("/dashboard/subscription")
           return
         }
 
-        // Check for daily request limit error
-        if (data.error === "Your daily request limit is reached") {
-          toast({
-            title: "Daily limit reached",
-            description:
-              "You've reached your daily request limit. Upgrade to a higher plan for more requests or try again tomorrow.",
-            variant: "destructive",
-          })
-          router.push("/pricing")
-          return
-        }
-
-        toast({
-          title: "Paraphrasing error",
-          description: data.error,
-          variant: "destructive",
-        })
-        return
-      }
-
-      // Store the paraphrased content in localStorage
-      localStorage.setItem("paraphrasedContent", JSON.stringify(data))
-
-      // Redirect to the paraphrase page
-      router.push("/paraphrase")
+        localStorage.setItem("paraphrasedContent", JSON.stringify(data))
+        router.push("/paraphrase")
+      })
     } catch (error) {
-      // Only show error message if it wasn't already handled
       if (!(error instanceof Error && error.message === "Session expired")) {
         toast({
           title: "Error paraphrasing",
@@ -235,20 +248,21 @@ export default function MakePost() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex flex-col sm:flex-row gap-4">
-            <Button
-              onClick={fetchUrls}
-              disabled={isLoading}
-              className="w-full sm:w-auto h-11"
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Fetching...
-                </>
-              ) : (
-                "Fetch Posts"
-              )}
-            </Button>
+            {isLoading ? (
+              <Card className="w-full border-primary/20">
+                <CardContent className="p-0">
+                  <BlogLoadingAnimation message="Fetching posts..." />
+                </CardContent>
+              </Card>
+            ) : (
+              <Button
+                onClick={fetchUrls}
+                disabled={isLoading}
+                className="w-full sm:w-auto h-11"
+              >
+                Fetch Posts
+              </Button>
+            )}
             <Button
               variant="outline"
               asChild

@@ -182,7 +182,7 @@ export default function Dashboard() {
       console.error("Error calculating dashboard stats:", error)
       // Keep existing data if any
       if (!stats) {
-        setStats({
+      setStats({
           total_posts: 0,
           total_paraphrased: 0
         })

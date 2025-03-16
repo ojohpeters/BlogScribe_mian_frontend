@@ -12,6 +12,7 @@ import { useUser } from "@/lib/user-context"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import Link from "next/link"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { PageLoading } from "@/components/ui/page-loading"
 
 interface MobileNavProps {
   items?: {
@@ -64,45 +65,40 @@ export function MobileNav({ items }: MobileNavProps) {
   const routes = isAuthenticated ? authRoutes : publicRoutes
 
   const handleLogout = async () => {
-    if (onLogout) {
-      onLogout()
-    } else {
-      // Default logout behavior
-      try {
-        const token = localStorage.getItem("authToken")
-        const refreshToken = localStorage.getItem("refreshToken")
+    try {
+      const token = localStorage.getItem("authToken")
+      const refreshToken = localStorage.getItem("refreshToken")
 
-        if (token && refreshToken) {
-          const response = await fetch("http://127.0.0.1:8000/api/users/logout/", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({ refresh: refreshToken }),
-          })
-
-          if (!response.ok) {
-            // Still remove tokens even if logout fails on server
-          }
-        }
-      } catch (error) {
-        console.error("Error during logout:", error)
-      } finally {
-        // Always remove tokens from localStorage
-        localStorage.removeItem("authToken")
-        localStorage.removeItem("refreshToken")
-        // Clear user data
-        clearUserData()
-        setIsAuthenticated(false)
-
-        toast({
-          title: "Logged out",
-          description: "You have been successfully logged out.",
+      if (token && refreshToken) {
+        const response = await fetch("http://127.0.0.1:8000/api/users/logout/", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ refresh: refreshToken }),
         })
 
-        router.push("/")
+        if (!response.ok) {
+          // Still remove tokens even if logout fails on server
+        }
       }
+    } catch (error) {
+      console.error("Error during logout:", error)
+    } finally {
+      // Always remove tokens from localStorage
+      localStorage.removeItem("authToken")
+      localStorage.removeItem("refreshToken")
+      // Clear user data
+      clearUserData()
+      setIsAuthenticated(false)
+
+      toast({
+        title: "Logged out",
+        description: "You have been successfully logged out.",
+      })
+
+      router.push("/")
     }
   }
 
@@ -114,6 +110,7 @@ export function MobileNav({ items }: MobileNavProps) {
 
   return (
     <>
+      <PageLoading />
       {/* Mobile Navigation */}
       <div className="fixed bottom-0 left-0 z-50 w-full border-t bg-white/95 dark:bg-gray-900/95 backdrop-blur supports-[backdrop-filter]:bg-white/80 dark:supports-[backdrop-filter]:bg-gray-900/80 shadow-sm md:hidden">
         <div className="grid h-16 grid-cols-4">

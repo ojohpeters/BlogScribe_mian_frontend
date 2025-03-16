@@ -4,10 +4,11 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Loader2, CheckCircle, AlertTriangle, ArrowLeft, Link } from "lucide-react"
+import { Loader2, CheckCircle, AlertTriangle, ArrowLeft, Link, PenTool } from "lucide-react"
 import { isAuthenticated, fetchWithAuth } from "@/lib/utils"
 import { useToast } from "@/components/ui/use-toast"
 import { useRouter } from "next/navigation"
+import { useLoadingState } from "@/lib/hooks/use-loading-state"
 
 interface ParaphrasedContent {
   success?: boolean
@@ -27,14 +28,34 @@ interface ParaphrasedContent {
   }
 }
 
+// Loading animation component
+const BlogLoadingAnimation = ({ message }: { message: string }) => {
+  return (
+    <div className="flex flex-col items-center justify-center p-8 space-y-4">
+      <div className="relative">
+        <div className="w-16 h-16 rounded-full bg-primary/10 animate-pulse"></div>
+        <PenTool className="w-8 h-8 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-primary animate-bounce" />
+      </div>
+      <div className="text-center space-y-2">
+        <p className="text-lg font-medium text-primary">{message}</p>
+        <div className="flex space-x-2 justify-center">
+          <div className="w-2 h-2 bg-primary rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+          <div className="w-2 h-2 bg-primary rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+          <div className="w-2 h-2 bg-primary rounded-full animate-bounce"></div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function UrlParaphrase() {
   const [url, setUrl] = useState("")
   const [paraphrasedText, setParaphrasedText] = useState("")
   const [error, setError] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
   const [isMounted, setIsMounted] = useState(false)
   const { toast } = useToast()
+  const { isLoading, withLoading } = useLoadingState()
 
   // Add subscription status check
   useEffect(() => {
@@ -90,8 +111,6 @@ export default function UrlParaphrase() {
           description: "An error occurred while checking your subscription.",
           variant: "destructive",
         })
-      } finally {
-        setIsLoadingSubscription(false)
       }
     }
 
@@ -99,33 +118,6 @@ export default function UrlParaphrase() {
   }, [router, toast])
 
   const [subscription, setSubscription] = useState<any>(null)
-  const [isLoadingSubscription, setIsLoadingSubscription] = useState(true)
-
-  const fetchSubscriptionStatus = async () => {
-    setIsLoadingSubscription(true)
-    try {
-      const token = localStorage.getItem("authToken")
-      if (!token) return
-
-      const response = await fetch("http://127.0.0.1:8000/api/subscription/details/", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-
-      if (response.ok) {
-        const data = await response.json()
-        console.log("URL Paraphraser - subscription data:", data)
-        setSubscription(data)
-      } else {
-        console.error("Failed to fetch subscription details:", response.status)
-      }
-    } catch (error) {
-      console.error("Error fetching subscription details:", error)
-    } finally {
-      setIsLoadingSubscription(false)
-    }
-  }
 
   // Check if subscription is active
   const hasActivePlan = subscription?.status === "active"
@@ -133,9 +125,8 @@ export default function UrlParaphrase() {
   // Update the hasActivePlan check to also verify Ultimate plan
   const hasUltimatePlan = subscription?.status === "active" && subscription?.plan?.name === "Ultimate"
 
-  // Update handleParaphrase to check subscription status
+  // Update handleParaphrase to use the loading hook
   const handleParaphrase = async () => {
-    // Check if user is authenticated
     if (!isAuthenticated()) {
       toast({
         title: "Authentication required",
@@ -155,66 +146,59 @@ export default function UrlParaphrase() {
       return
     }
 
-    setIsLoading(true)
     setError("")
     setParaphrasedText("")
 
     try {
-      const response = await fetchWithAuth(
-        "http://127.0.0.1:8000/api/paraphrase/",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
+      await withLoading(async () => {
+        const response = await fetchWithAuth(
+          "http://127.0.0.1:8000/api/paraphrase/",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ url }),
           },
-          body: JSON.stringify({ url }),
-        },
-        router,
-        toast,
-      )
+          router,
+          toast,
+        )
 
-      if (!response.ok) {
-        throw new Error("Failed to paraphrase content")
-      }
-
-      const data: ParaphrasedContent = await response.json()
-
-      if (data.error) {
-        toast({
-          title: "Error",
-          description: data.error,
-          variant: "destructive",
-        })
-      } else {
-        // Handle different response formats
-        const paraphrasedContent = {
-          ...data,
-          // Ensure we have the correct content field
-          content: data.Paraphrased || data.paraphrased_content || data.Post || "",
-          // Keep the original URL and title
-          originalUrl: url,
-          originalTitle: data.title || "",
+        if (!response.ok) {
+          throw new Error("Failed to paraphrase content")
         }
 
-        // Store the paraphrased content in localStorage
-        localStorage.setItem("paraphrasedContent", JSON.stringify(paraphrasedContent))
-        
-        // Redirect to the paraphrase page
-        router.push("/paraphrase")
-        
-        toast({
-          title: "Success",
-          description: "Content paraphrased successfully",
-        })
-      }
+        const data: ParaphrasedContent = await response.json()
+
+        if (data.error) {
+          toast({
+            title: "Error",
+            description: data.error,
+            variant: "destructive",
+          })
+        } else {
+          const paraphrasedContent = {
+            ...data,
+            content: data.Paraphrased || data.paraphrased_content || data.Post || "",
+            originalUrl: url,
+            originalTitle: data.title || "",
+          }
+
+          localStorage.setItem("paraphrasedContent", JSON.stringify(paraphrasedContent))
+          router.push("/paraphrase")
+          
+          toast({
+            title: "Success",
+            description: "Content paraphrased successfully",
+          })
+        }
+      })
     } catch (error) {
       toast({
         title: "Error",
         description: "Failed to paraphrase content. Please try again.",
         variant: "destructive",
       })
-    } finally {
-      setIsLoading(false)
     }
   }
 
@@ -233,66 +217,66 @@ export default function UrlParaphrase() {
         </Button>
       </div>
 
-      {/* Add subscription warning banner */}
-      {isMounted &&
-        (isAuthenticated() && isLoadingSubscription ? (
-          <div className="flex items-center justify-center h-12 mb-6">
-            <Loader2 className="h-5 w-5 animate-spin text-muted-foreground mr-2" />
-            <span className="text-muted-foreground">Checking subscription status...</span>
-          </div>
-        ) : (
-          isAuthenticated() &&
-          !hasUltimatePlan && (
-            <Card className="border-amber-300 dark:border-amber-700 mb-8">
-              <CardHeader className="bg-amber-50 dark:bg-amber-900/20 border-b border-amber-200 dark:border-amber-800">
-                <CardTitle className="flex items-center text-amber-800 dark:text-amber-200">
-                  <AlertTriangle className="h-5 w-5 text-amber-500 mr-2" />
-                  Premium Feature Locked
-                </CardTitle>
-                <CardDescription className="text-amber-700 dark:text-amber-300">
-                  This feature is exclusive to Ultimate plan subscribers
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="pt-6">
-                <p className="text-sm text-amber-700 dark:text-amber-300 mb-4">
-                  The URL Paraphraser allows you to instantly rewrite content from any URL with our advanced AI. Upgrade
-                  to the Ultimate plan to unlock this powerful feature and enhance your content creation workflow.
-                </p>
-                {subscription && subscription.plan && (
-                  <div className="bg-amber-50/50 dark:bg-amber-900/10 p-4 rounded-lg mb-4">
-                    <h4 className="font-medium text-amber-800 dark:text-amber-200 mb-2">Ultimate Plan Features:</h4>
-                    <ul className="space-y-2">
-                      <li className="flex items-start text-sm text-amber-700 dark:text-amber-300">
-                        <CheckCircle className="h-4 w-4 text-amber-500 mr-2 mt-0.5 flex-shrink-0" />
-                        <span>Unlimited daily requests</span>
-                      </li>
-                      <li className="flex items-start text-sm text-amber-700 dark:text-amber-300">
-                        <CheckCircle className="h-4 w-4 text-amber-500 mr-2 mt-0.5 flex-shrink-0" />
-                        <span>URL content paraphrasing</span>
-                      </li>
-                      <li className="flex items-start text-sm text-amber-700 dark:text-amber-300">
-                        <CheckCircle className="h-4 w-4 text-amber-500 mr-2 mt-0.5 flex-shrink-0" />
-                        <span>Advanced SEO tools</span>
-                      </li>
-                      <li className="flex items-start text-sm text-amber-700 dark:text-amber-300">
-                        <CheckCircle className="h-4 w-4 text-amber-500 mr-2 mt-0.5 flex-shrink-0" />
-                        <span>Priority support</span>
-                      </li>
-                    </ul>
-                  </div>
-                )}
-                <div className="flex justify-center">
-                  <Button
-                    onClick={() => router.push("/dashboard/subscription")}
-                    className="bg-amber-600 hover:bg-amber-700 text-white"
-                  >
-                    Upgrade to Ultimate Plan
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )
-        ))}
+      {/* Loading state for subscription check */}
+      {isMounted && isAuthenticated() && (
+        <Card className="mb-6">
+          <CardContent className="p-0">
+            <BlogLoadingAnimation message="Checking your subscription status..." />
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Subscription warning banner */}
+      {isMounted && isAuthenticated() && !hasUltimatePlan && (
+        <Card className="border-amber-300 dark:border-amber-700 mb-8">
+          <CardHeader className="bg-amber-50 dark:bg-amber-900/20 border-b border-amber-200 dark:border-amber-800">
+            <CardTitle className="flex items-center text-amber-800 dark:text-amber-200">
+              <AlertTriangle className="h-5 w-5 text-amber-500 mr-2" />
+              Premium Feature Locked
+            </CardTitle>
+            <CardDescription className="text-amber-700 dark:text-amber-300">
+              This feature is exclusive to Ultimate plan subscribers
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <p className="text-sm text-amber-700 dark:text-amber-300 mb-4">
+              The URL Paraphraser allows you to instantly rewrite content from any URL with our advanced AI. Upgrade
+              to the Ultimate plan to unlock this powerful feature and enhance your content creation workflow.
+            </p>
+            {subscription && subscription.plan && (
+              <div className="bg-amber-50/50 dark:bg-amber-900/10 p-4 rounded-lg mb-4">
+                <h4 className="font-medium text-amber-800 dark:text-amber-200 mb-2">Ultimate Plan Features:</h4>
+                <ul className="space-y-2">
+                  <li className="flex items-start text-sm text-amber-700 dark:text-amber-300">
+                    <CheckCircle className="h-4 w-4 text-amber-500 mr-2 mt-0.5 flex-shrink-0" />
+                    <span>Unlimited daily requests</span>
+                  </li>
+                  <li className="flex items-start text-sm text-amber-700 dark:text-amber-300">
+                    <CheckCircle className="h-4 w-4 text-amber-500 mr-2 mt-0.5 flex-shrink-0" />
+                    <span>URL content paraphrasing</span>
+                  </li>
+                  <li className="flex items-start text-sm text-amber-700 dark:text-amber-300">
+                    <CheckCircle className="h-4 w-4 text-amber-500 mr-2 mt-0.5 flex-shrink-0" />
+                    <span>Advanced SEO tools</span>
+                  </li>
+                  <li className="flex items-start text-sm text-amber-700 dark:text-amber-300">
+                    <CheckCircle className="h-4 w-4 text-amber-500 mr-2 mt-0.5 flex-shrink-0" />
+                    <span>Priority support</span>
+                  </li>
+                </ul>
+              </div>
+            )}
+            <div className="flex justify-center">
+              <Button
+                onClick={() => router.push("/dashboard/subscription")}
+                className="bg-amber-600 hover:bg-amber-700 text-white"
+              >
+                Upgrade to Ultimate Plan
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <Card className="shadow-md">
         <CardHeader>
@@ -313,23 +297,25 @@ export default function UrlParaphrase() {
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               className="w-full"
+              disabled={isLoading}
             />
           </div>
 
-          <Button 
-            onClick={handleParaphrase} 
-            disabled={isLoading} 
-            className="w-full"
-          >
-            {isLoading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Paraphrasing...
-              </>
-            ) : (
-              "Paraphrase Content"
-            )}
-          </Button>
+          {isLoading ? (
+            <Card className="border-primary/20">
+              <CardContent className="p-0">
+                <BlogLoadingAnimation message="Paraphrasing your content..." />
+              </CardContent>
+            </Card>
+          ) : (
+            <Button 
+              onClick={handleParaphrase} 
+              disabled={isLoading || !hasUltimatePlan} 
+              className="w-full"
+            >
+              Paraphrase Content
+            </Button>
+          )}
         </CardContent>
       </Card>
     </div>

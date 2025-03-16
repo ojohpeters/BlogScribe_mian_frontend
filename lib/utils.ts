@@ -1,5 +1,6 @@
 import { type ClassValue, clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
+import { useLoading } from "@/contexts/loading-context"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -125,103 +126,39 @@ export async function fetchWithAuth(
   url: string,
   options: RequestInit = {},
   router: any,
-  toast: any,
-  retryCount = 2
-): Promise<Response> {
+  toast: any
+) {
   const token = localStorage.getItem("authToken")
-
   if (!token) {
-    throw new Error("No authentication token found")
+    toast({
+      title: "Authentication required",
+      description: "Please log in to continue.",
+      variant: "destructive",
+    })
+    router.push("/auth/login")
+    throw new Error("No auth token")
   }
 
-  // Add authorization header
-  const authOptions = {
+  const response = await fetch(url, {
     ...options,
     headers: {
       ...options.headers,
       Authorization: `Bearer ${token}`,
     },
+  })
+
+  if (response.status === 401) {
+    localStorage.removeItem("authToken")
+    toast({
+      title: "Session expired",
+      description: "Please log in again.",
+      variant: "destructive",
+    })
+    router.push("/auth/login")
+    throw new Error("Unauthorized")
   }
 
-  let lastError;
-  for (let attempt = 0; attempt <= retryCount; attempt++) {
-    try {
-      console.log(`Attempt ${attempt + 1}/${retryCount + 1} for ${url}`);
-      const response = await fetch(url, authOptions);
-      
-      // Log response status
-      console.log(`Response status: ${response.status} for ${url}`);
-
-      // Handle potential token expiration first
-      if (response.status === 401) {
-        const handledResponse = await handleApiResponse(response, router, toast);
-        if (handledResponse && "retryWithNewToken" in handledResponse) {
-          console.log("Retrying with new token");
-          const newToken = localStorage.getItem("authToken");
-          const retryOptions = {
-            ...authOptions,
-            headers: {
-              ...authOptions.headers,
-              Authorization: `Bearer ${newToken}`,
-            },
-          };
-          const retryResponse = await fetch(url, retryOptions);
-          if (!retryResponse.ok) {
-            throw new Error(`Request failed with status ${retryResponse.status}`);
-          }
-          return retryResponse;
-        }
-        throw new Error("Authentication failed");
-      }
-      
-      // For non-401 errors
-      if (!response.ok) {
-        throw new Error(`Request failed with status ${response.status}`);
-      }
-
-      return response;
-    } catch (error: unknown) {
-      lastError = error;
-      
-      // Check if the request was aborted
-      if (error instanceof Error && error.name === 'AbortError') {
-        console.log(`Request aborted for ${url}`);
-        throw error; // Don't retry aborted requests
-      }
-      
-      console.error(`Attempt ${attempt + 1} failed for ${url}:`, error);
-      
-      // Only show error message on final attempt and if it's not an abort
-      if (attempt === retryCount && !(error instanceof Error && error.name === 'AbortError')) {
-        // Show specific error messages via toast for non-network errors
-        if (error instanceof Error) {
-          const errorMessage = error.message;
-          // Only show toast for specific error messages, not generic network errors
-          if (!errorMessage.includes('Failed to fetch') && 
-              !errorMessage.includes('network') &&
-              !errorMessage.includes('timeout')) {
-            toast({
-              title: "Error",
-              description: errorMessage,
-              variant: "destructive",
-            });
-          }
-        }
-      }
-      
-      // If this isn't the last attempt, wait before retrying
-      if (attempt < retryCount) {
-        await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1))); // Exponential backoff
-        continue;
-      }
-    }
-  }
-
-  // If we've exhausted all retries, throw the original error
-  if (lastError instanceof Error) {
-    throw lastError;
-  }
-  throw new Error("Request failed");
+  return response
 }
 
 // Check if user has subscribed before

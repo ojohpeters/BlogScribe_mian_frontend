@@ -20,6 +20,7 @@ import { LogOut, User, FileEdit } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
 import { useUser } from "@/lib/user-context"
 import Link from "next/link"
+import { PageLoading } from "@/components/ui/page-loading"
 
 interface DesktopNavProps {
   onLogout?: () => void
@@ -129,84 +130,87 @@ export function DesktopNav({ onLogout }: DesktopNavProps) {
   }
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-white/95 dark:bg-gray-900/95 backdrop-blur supports-[backdrop-filter]:bg-white/80 dark:supports-[backdrop-filter]:bg-gray-900/80 shadow-sm">
-      <div className="container flex h-16 items-center justify-between">
-        <div className="flex items-center gap-6 md:gap-10">
-          <Link href="/" className="hidden items-center space-x-2 md:flex">
-            <span className="hidden font-bold text-xl bg-gradient-to-r from-primary to-blue-600 dark:from-blue-400 dark:to-blue-300 bg-clip-text text-transparent sm:inline-block">
-              BlogScribe
-            </span>
-          </Link>
-          <nav className="hidden gap-6 md:flex">
-            {routes.map((route) => (
-              <NavLink key={route.href} href={route.href} active={pathname === route.href}>
-                {route.label}
-              </NavLink>
-            ))}
-          </nav>
+    <>
+      <PageLoading />
+      <header className="sticky top-0 z-50 w-full border-b bg-white/95 dark:bg-gray-900/95 backdrop-blur supports-[backdrop-filter]:bg-white/80 dark:supports-[backdrop-filter]:bg-gray-900/80 shadow-sm">
+        <div className="container flex h-16 items-center justify-between">
+          <div className="flex items-center gap-6 md:gap-10">
+            <Link href="/" className="hidden items-center space-x-2 md:flex">
+              <span className="hidden font-bold text-xl bg-gradient-to-r from-primary to-blue-600 dark:from-blue-400 dark:to-blue-300 bg-clip-text text-transparent sm:inline-block">
+                BlogScribe
+              </span>
+            </Link>
+            <nav className="hidden gap-6 md:flex">
+              {routes.map((route) => (
+                <NavLink key={route.href} href={route.href} active={pathname === route.href}>
+                  {route.label}
+                </NavLink>
+              ))}
+            </nav>
+          </div>
+          <div className="flex items-center gap-3">
+            <ThemeToggle />
+            {isAuthenticated ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className="relative h-9 w-9 rounded-full border-2 border-primary/10 hover:border-primary/30 transition-colors"
+                  >
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src="/placeholder.svg" alt={user?.username || "User"} />
+                      <AvatarFallback className="bg-primary/10 text-primary">{getUserInitials()}</AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56" align="end" forceMount>
+                  <DropdownMenuLabel className="font-normal">
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium leading-none">{user?.username || "User"}</p>
+                      <p className="text-xs leading-none text-muted-foreground">{user?.email || "user@example.com"}</p>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link href="/dashboard/profile" className="cursor-pointer">
+                      <User className="mr-2 h-4 w-4" />
+                      <span>Profile</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/dashboard/subscription" className="cursor-pointer">
+                      <FileEdit className="mr-2 h-4 w-4" />
+                      <span>Subscription</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={handleLogout}
+                    className="cursor-pointer text-destructive focus:text-destructive"
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Log out</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Link href="/auth/login">
+                  <Button variant="ghost" size="sm" className="rounded-full px-4">
+                    Login
+                  </Button>
+                </Link>
+                <Link href="/auth/register">
+                  <Button size="sm" className="rounded-full px-4 shadow-sm">
+                    Sign Up
+                  </Button>
+                </Link>
+              </div>
+            )}
+          </div>
         </div>
-        <div className="flex items-center gap-3">
-          <ThemeToggle />
-          {isAuthenticated ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  className="relative h-9 w-9 rounded-full border-2 border-primary/10 hover:border-primary/30 transition-colors"
-                >
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src="/placeholder.svg" alt={user?.username || "User"} />
-                    <AvatarFallback className="bg-primary/10 text-primary">{getUserInitials()}</AvatarFallback>
-                  </Avatar>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56" align="end" forceMount>
-                <DropdownMenuLabel className="font-normal">
-                  <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">{user?.username || "User"}</p>
-                    <p className="text-xs leading-none text-muted-foreground">{user?.email || "user@example.com"}</p>
-                  </div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link href="/dashboard/profile" className="cursor-pointer">
-                    <User className="mr-2 h-4 w-4" />
-                    <span>Profile</span>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/dashboard/subscription" className="cursor-pointer">
-                    <FileEdit className="mr-2 h-4 w-4" />
-                    <span>Subscription</span>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={handleLogout}
-                  className="cursor-pointer text-destructive focus:text-destructive"
-                >
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <span>Log out</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          ) : (
-            <div className="flex items-center gap-2">
-              <Link href="/auth/login">
-                <Button variant="ghost" size="sm" className="rounded-full px-4">
-                  Login
-                </Button>
-              </Link>
-              <Link href="/auth/register">
-                <Button size="sm" className="rounded-full px-4 shadow-sm">
-                  Sign Up
-                </Button>
-              </Link>
-            </div>
-          )}
-        </div>
-      </div>
-    </header>
+      </header>
+    </>
   )
 }
 

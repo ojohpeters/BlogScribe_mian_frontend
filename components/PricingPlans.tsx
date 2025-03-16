@@ -274,14 +274,14 @@ export default function PricingPlans({ showFeaturedOnly = true }: PricingPlansPr
             </CardContent>
             <CardFooter>
               <Button
-                className={`w-full group relative overflow-hidden ${isPro ? "" : "bg-secondary hover:bg-secondary/80 text-secondary-foreground"}`}
+                className={`w-full group relative overflow-hidden ${isPro ? "" : "bg-primary hover:bg-primary/90 text-primary-foreground"}`}
                 onClick={() => handleSubscribe(plan.id)}
               >
                 <span className="relative z-10 flex items-center justify-center">
                   Subscribe
                   <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </span>
-                <span className="absolute inset-0 bg-primary/10 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-300"></span>
+                <span className="absolute inset-0 bg-primary-foreground/10 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-300"></span>
               </Button>
             </CardFooter>
           </Card>
