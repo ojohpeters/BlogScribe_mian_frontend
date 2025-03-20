@@ -16,7 +16,7 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-sans" })
 export const metadata: Metadata = {
   title: "BlogScribe - AI-Powered Blog Management",
   description: "Manage and optimize your WordPress blog with AI-powered tools",
-    generator: 'v0.dev'
+    generator: 'v0.dev, Ojoh Peters'
 }
 
 export default function RootLayout({
