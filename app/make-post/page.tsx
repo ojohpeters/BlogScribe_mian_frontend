@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { useToast } from "@/components/ui/use-toast"
 import { Loader2, ExternalLink, ArrowRight, PenTool } from "lucide-react"
 import { isAuthenticated, fetchWithAuth } from "@/lib/utils"
@@ -42,6 +42,7 @@ export default function MakePost() {
   const { user } = useUser()
   const { hasActivePlan, isLoading: isLoadingSubscription } = useSubscription()
   const { withLoading } = useLoadingState()
+  const [selectedCategory, setSelectedCategory] = useState<string>("general")
 
   useEffect(() => {
     // Check if user is authenticated
@@ -95,9 +96,10 @@ export default function MakePost() {
             headers: {
               "Content-Type": "application/json",
             },
+            body: JSON.stringify({ category: selectedCategory }),
           },
           router,
-          toast
+          toast,
         )
 
         if (!response.ok) {
@@ -163,7 +165,7 @@ export default function MakePost() {
             body: JSON.stringify({ title, url }),
           },
           router,
-          toast
+          toast,
         )
 
         if (!response.ok) {
@@ -247,6 +249,28 @@ export default function MakePost() {
           <CardDescription>Get the latest posts from your WordPress site</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <label htmlFor="category" className="text-sm font-medium">
+              Select Category
+            </label>
+            <select
+              id="category"
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className="w-full h-10 px-3 py-2 text-sm rounded-md border border-input bg-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            >
+              <option value="general">General</option>
+              <option value="politics">Politics</option>
+              <option value="business">Business</option>
+              <option value="entertainment">Entertainment</option>
+              <option value="health">Health</option>
+              <option value="science">Science</option>
+              <option value="sports">Sports</option>
+              <option value="technology">Technology</option>
+            </select>
+            <p className="text-xs text-muted-foreground">Select a category to fetch posts related to that topic</p>
+          </div>
+
           <div className="flex flex-col sm:flex-row gap-4">
             {isLoading ? (
               <Card className="w-full border-primary/20">
@@ -255,19 +279,11 @@ export default function MakePost() {
                 </CardContent>
               </Card>
             ) : (
-              <Button
-                onClick={fetchUrls}
-                disabled={isLoading}
-                className="w-full sm:w-auto h-11"
-              >
+              <Button onClick={fetchUrls} disabled={isLoading} className="w-full sm:w-auto h-11">
                 Fetch Posts
               </Button>
             )}
-            <Button
-              variant="outline"
-              asChild
-              className="w-full sm:w-auto h-11"
-            >
+            <Button variant="outline" asChild className="w-full sm:w-auto h-11">
               <Link href="/url-paraphraser">
                 Manual URL Input
                 <ArrowRight className="ml-2 h-4 w-4" />
@@ -332,9 +348,7 @@ export default function MakePost() {
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
               <div className="text-center sm:text-left">
                 <h3 className="font-semibold text-lg mb-2">Subscription Required</h3>
-                <p className="text-sm text-muted-foreground">
-                  Please subscribe to a plan to access this feature.
-                </p>
+                <p className="text-sm text-muted-foreground">Please subscribe to a plan to access this feature.</p>
               </div>
               <Button asChild className="w-full sm:w-auto">
                 <Link href="/pricing">View Plans</Link>

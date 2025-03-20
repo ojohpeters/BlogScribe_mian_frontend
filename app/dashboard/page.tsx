@@ -3,11 +3,11 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { useToast } from "@/components/ui/use-toast"
-import { Loader2, RefreshCw, CreditCard, BarChart3, FileText, Plus, Clock, Newspaper } from "lucide-react"
+import { Loader2, RefreshCw, CreditCard, BarChart3, FileText, Plus, Newspaper } from "lucide-react"
 import { format } from "date-fns"
-import { fetchWithAuth, getRecentPosts, type RecentPost } from "@/lib/utils"
+import { fetchWithAuth } from "@/lib/utils"
 import { useUserSubscription } from "./layout"
 
 interface SubscriptionDetails {
@@ -35,11 +35,11 @@ interface DashboardStats {
 }
 
 interface APIPost {
-  title: string;
-  excerpt?: string;
-  created_at?: string;
-  published_at?: string;
-  url?: string;
+  title: string
+  excerpt?: string
+  created_at?: string
+  published_at?: string
+  url?: string
 }
 
 export default function Dashboard() {
@@ -52,21 +52,21 @@ export default function Dashboard() {
   const { hasSubscribedBefore, hasActivePlan, subscriptionData } = useUserSubscription()
 
   useEffect(() => {
-    let isSubscribed = true;
-    const abortController = new AbortController();
+    let isSubscribed = true
+    const abortController = new AbortController()
 
     const loadDashboardData = async () => {
       // Load each piece of data independently
       const loadActivity = async () => {
         try {
-          if (!isSubscribed) return;
-          await fetchUserActivity(abortController.signal);
+          if (!isSubscribed) return
+          await fetchUserActivity(abortController.signal)
         } catch (error: unknown) {
-          if (!isSubscribed) return;
-          if (error instanceof Error && error.name === 'AbortError') {
-            return; // Silently handle aborted requests
+          if (!isSubscribed) return
+          if (error instanceof Error && error.name === "AbortError") {
+            return // Silently handle aborted requests
           }
-          console.error('Error loading activity:', error);
+          console.error("Error loading activity:", error)
           // Set fallback activity data without showing error
           setUserActivity({
             id: 0,
@@ -74,54 +74,52 @@ export default function Dashboard() {
             fetched_posts: 0,
             paraphrased: 0,
             daily_api_requests: 0,
-            severity: "none"
-          });
+            severity: "none",
+          })
         }
-      };
+      }
 
       const loadStats = async () => {
         try {
-          if (!isSubscribed) return;
-          await fetchDashboardStats(abortController.signal);
+          if (!isSubscribed) return
+          await fetchDashboardStats(abortController.signal)
         } catch (error: unknown) {
-          if (!isSubscribed) return;
-          if (error instanceof Error && error.name === 'AbortError') {
-            return; // Silently handle aborted requests
+          if (!isSubscribed) return
+          if (error instanceof Error && error.name === "AbortError") {
+            return // Silently handle aborted requests
           }
-          console.error('Error loading stats:', error);
+          console.error("Error loading stats:", error)
         }
-      };
+      }
 
       // Start all loads in parallel but handle them independently
-      if (!isSubscribed) return;
-      
-      await Promise.allSettled([
-        loadActivity(),
-        loadStats()
-      ]);
-    };
+      if (!isSubscribed) return
 
-    loadDashboardData();
+      await Promise.allSettled([loadActivity(), loadStats()])
+    }
+
+    loadDashboardData()
 
     // Cleanup function
     return () => {
-      isSubscribed = false;
-      abortController.abort();
-    };
-  }, []);
+      isSubscribed = false
+      abortController.abort()
+    }
+  }, [])
 
   // Fetch user activity details from the API
   const fetchUserActivity = async (signal?: AbortSignal) => {
     try {
-      const response = await fetchWithAuth(
-        "http://127.0.0.1:8000/api/details/",
-        { signal },
-        router,
-        toast
-      );
+      const response = await fetchWithAuth("http://127.0.0.1:8000/api/details/", { signal }, router, toast)
 
-      const data = await response.json();
-      const activityData = Array.isArray(data) && data.length > 0 ? data[0] : null;
+      // Check for auth errors but don't proceed with processing the response
+      if (response.status === 401) {
+        // Auth error already handled in fetchWithAuth
+        return
+      }
+
+      const data = await response.json()
+      const activityData = Array.isArray(data) && data.length > 0 ? data[0] : null
 
       if (!activityData) {
         setUserActivity({
@@ -130,9 +128,9 @@ export default function Dashboard() {
           fetched_posts: 0,
           paraphrased: 0,
           daily_api_requests: 0,
-          severity: "none"
-        });
-        return;
+          severity: "none",
+        })
+        return
       }
 
       setUserActivity({
@@ -141,8 +139,8 @@ export default function Dashboard() {
         fetched_posts: activityData.fetched_posts,
         paraphrased: activityData.paraphrased || 0,
         daily_api_requests: activityData.daily_api_requests,
-        severity: "none"
-      });
+        severity: "none",
+      })
     } catch (error: unknown) {
       // Set default values on error
       setUserActivity({
@@ -151,23 +149,25 @@ export default function Dashboard() {
         fetched_posts: 0,
         paraphrased: 0,
         daily_api_requests: 0,
-        severity: "none"
-      });
+        severity: "none",
+      })
 
       // Only show specific API errors via toast, ignore network and timeout errors
-      if (error instanceof Error && 
-          !error.name.includes('AbortError') && 
-          !error.message.includes('Failed to fetch') && 
-          !error.message.includes('network') &&
-          !error.message.includes('timeout')) {
+      if (
+        error instanceof Error &&
+        !error.name.includes("AbortError") &&
+        !error.message.includes("Failed to fetch") &&
+        !error.message.includes("network") &&
+        !error.message.includes("timeout")
+      ) {
         toast({
           title: "Error",
           description: error.message,
           variant: "destructive",
-        });
+        })
       }
     }
-  };
+  }
 
   // Update the fetchDashboardStats function to calculate stats from userActivity
   const fetchDashboardStats = async (signal?: AbortSignal) => {
@@ -176,15 +176,15 @@ export default function Dashboard() {
       // Calculate stats from userActivity data
       setStats({
         total_posts: userActivity?.fetched_posts || 0,
-        total_paraphrased: userActivity?.paraphrased || 0
+        total_paraphrased: userActivity?.paraphrased || 0,
       })
     } catch (error: unknown) {
       console.error("Error calculating dashboard stats:", error)
       // Keep existing data if any
       if (!stats) {
-      setStats({
+        setStats({
           total_posts: 0,
-          total_paraphrased: 0
+          total_paraphrased: 0,
         })
       }
     } finally {
@@ -197,7 +197,7 @@ export default function Dashboard() {
     if (userActivity && stats) {
       setStats({
         total_posts: userActivity.fetched_posts,
-        total_paraphrased: userActivity.paraphrased
+        total_paraphrased: userActivity.paraphrased,
       })
     }
   }, [userActivity])
@@ -232,18 +232,54 @@ export default function Dashboard() {
           <p className="text-muted-foreground mt-1">Manage your WordPress blog content</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={refreshAllData} disabled={isLoadingStats} className="rounded-full">
-            <RefreshCw className={`h-4 w-4 mr-2 ${isLoadingStats ? "animate-spin" : ""}`} />
-            Refresh
-          </Button>
-          <Button
-            size="sm"
-            className="rounded-full shadow-sm hover:shadow transition-all duration-200"
-            onClick={() => navigateTo("/make-post")}
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            New Post
-          </Button>
+        <Button
+              variant="outline"
+              className="w-full justify-start relative overflow-hidden group rounded-full"
+              onClick={async () => {
+                try {
+                  const response = await fetchWithAuth(
+                    "http://127.0.0.1:8000/api/sync/",
+                    { method: "GET" },
+                    router,
+                    toast,
+                  )
+
+                  // Check for auth errors but don't proceed with processing the response
+                  if (response.status === 401) {
+                    // Auth error already handled in fetchWithAuth
+                    return
+                  }
+
+                  if (response.ok) {
+                    toast({
+                      title: "Sync Successful",
+                      description: "Your WordPress content has been synchronized successfully.",
+                      variant: "default",
+                    })
+                    // Refresh data after successful sync
+                    refreshAllData()
+                  } else {
+                    const errorData = await response.json().catch(() => ({ detail: "Unknown error occurred" }))
+                    toast({
+                      title: "Sync Failed",
+                      description: errorData.detail || "Failed to synchronize WordPress content.",
+                      variant: "destructive",
+                    })
+                  }
+                } catch (error) {
+                  console.error("Sync error:", error)
+                  toast({
+                    title: "Sync Error",
+                    description: error instanceof Error ? error.message : "An unexpected error occurred during sync.",
+                    variant: "destructive",
+                  })
+                }
+              }}
+            >
+              <RefreshCw className="mr-2 h-4 w-4" />
+              <span className="relative z-10">Sync WordPress</span>
+              <span className="absolute inset-0 bg-muted transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-300"></span>
+            </Button>
         </div>
       </div>
 
@@ -304,7 +340,9 @@ export default function Dashboard() {
                 <div className="w-full bg-secondary rounded-full h-2.5 mt-2 overflow-hidden">
                   <div
                     className="bg-primary h-2.5 rounded-full transition-all duration-500 ease-in-out"
-                    style={{ width: `${((userActivity?.daily_api_requests || 0) / (subscriptionData.plan.daily_limit || 1)) * 100}%` }}
+                    style={{
+                      width: `${((userActivity?.daily_api_requests || 0) / (subscriptionData.plan.daily_limit || 1)) * 100}%`,
+                    }}
                   ></div>
                 </div>
               </div>
@@ -414,6 +452,7 @@ export default function Dashboard() {
                 <span className="absolute inset-0 bg-muted transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-300"></span>
               </Button>
             )}
+            
           </CardContent>
         </Card>
       </div>

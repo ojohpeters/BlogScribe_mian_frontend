@@ -11,10 +11,11 @@ import { Loader2, ArrowRight, FileText, RefreshCw, Globe, Search, Zap, Clock, Sh
 import { motion, AnimatePresence } from "framer-motion"
 import { useToast } from "@/components/ui/use-toast"
 import PricingPlans from "@/components/PricingPlans"
+import HowItWorksSection from "@/components/HowItWorksSection"
 
 interface Post {
-  title: string;
-  url: string;
+  title: string
+  url: string
 }
 
 export default function Home() {
@@ -94,15 +95,12 @@ export default function Home() {
         return
       }
 
-      const response = await fetchWithAuth(
-        "http://127.0.0.1:8000/api/fetch-news/",
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      )
+      const response = await fetchWithAuth("http://127.0.0.1:8000/api/fetch-news/", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      })
 
       // Handle unauthorized response
       if (response.status === 401) {
@@ -140,10 +138,10 @@ export default function Home() {
 
       // Transform the data into the correct format
       let transformedData: Post[] = []
-      if (typeof data === 'object' && data !== null) {
+      if (typeof data === "object" && data !== null) {
         transformedData = Object.entries(data).map(([key, value]) => ({
           title: key,
-          url: value as string
+          url: value as string,
         }))
       }
 
@@ -155,10 +153,9 @@ export default function Home() {
         title: "Success!",
         description: `Retrieved ${transformedData.length} posts.`,
       })
-
     } catch (error) {
       console.error("Error fetching news:", error)
-      
+
       // If the token is missing, redirect to login
       if (error instanceof Error && error.message === "No authentication token found") {
         toast({
@@ -182,23 +179,18 @@ export default function Home() {
   }
 
   const renderTryItNowSection = (isMainSection = false) => (
-    <section className={`py-16 sm:py-20 ${isMainSection ? 'bg-secondary' : ''} relative overflow-hidden`}>
+    <section className={`py-16 sm:py-20 ${isMainSection ? "bg-secondary" : ""} relative overflow-hidden`}>
       {isMainSection && (
         <div className="absolute inset-0 bg-grid-black/[0.05] dark:bg-grid-white/[0.05] bg-[size:60px_60px]" />
       )}
-      
+
       <div className="container relative mx-auto px-4">
         <div className="text-center mb-8">
           <h2 className="text-2xl sm:text-3xl font-bold mb-4">Try Our Tools</h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
             Fetch your WordPress posts and use our AI to paraphrase them instantly.
           </p>
-          <Button
-            size="lg"
-            onClick={handleTryItNow}
-            disabled={isLoading}
-            className="relative group overflow-hidden"
-          >
+          <Button size="lg" onClick={handleTryItNow} disabled={isLoading} className="relative group overflow-hidden">
             <span className="relative z-10 flex items-center">
               {isLoading ? (
                 <>
@@ -228,9 +220,7 @@ export default function Home() {
               <CardHeader>
                 <CardTitle>Available Posts</CardTitle>
                 <CardDescription>
-                  {isLoggedIn 
-                    ? "Click on a post to paraphrase it" 
-                    : "Sign up to paraphrase these posts and more"}
+                  {isLoggedIn ? "Click on a post to paraphrase it" : "Sign up to paraphrase these posts and more"}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -240,9 +230,7 @@ export default function Home() {
                       <CardContent className="p-4">
                         <div className="flex flex-col space-y-4">
                           <div className="space-y-2">
-                            <h3 className="font-semibold text-base sm:text-lg line-clamp-2">
-                              {post.title}
-                            </h3>
+                            <h3 className="font-semibold text-base sm:text-lg line-clamp-2">{post.title}</h3>
                             <div className="flex items-center text-sm text-muted-foreground">
                               <Globe className="h-4 w-4 mr-1" />
                               <a
@@ -266,10 +254,7 @@ export default function Home() {
                               Paraphrase This Post
                             </Button>
                           ) : (
-                            <Button
-                              onClick={() => router.push("/auth/register")}
-                              className="w-full sm:w-auto"
-                            >
+                            <Button onClick={() => router.push("/auth/register")} className="w-full sm:w-auto">
                               Sign Up to Paraphrase
                             </Button>
                           )}
@@ -319,6 +304,9 @@ export default function Home() {
             </div>
           </section>
 
+          {/* How It Works Section */}
+          <HowItWorksSection />
+
           {/* Try It Now Section for logged-in users */}
           {renderTryItNowSection(true)}
         </main>
@@ -354,7 +342,7 @@ export default function Home() {
           {/* Background Pattern */}
           <div className="absolute inset-0 bg-grid-white/[0.05] bg-[size:60px_60px]" />
           <div className="absolute inset-0 bg-gradient-to-t from-primary/20 to-transparent" />
-          
+
           {/* Animated Background Elements */}
           <div className="absolute inset-0 overflow-hidden">
             <div className="absolute -top-40 -right-40 w-80 h-80 bg-white/10 rounded-full blur-3xl animate-blob" />
@@ -363,9 +351,9 @@ export default function Home() {
           </div>
 
           <div className="container relative mx-auto px-4 text-center">
-            <motion.div 
-              initial={{ opacity: 0 }} 
-              animate={{ opacity: 1 }} 
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
               transition={{ duration: 1 }}
               className="relative z-10"
             >
@@ -437,8 +425,8 @@ export default function Home() {
                 transition={{ duration: 0.8, delay: 0.8 }}
               >
                 <Link href="/auth/register">
-                  <Button 
-                    size="lg" 
+                  <Button
+                    size="lg"
                     className="w-full sm:w-auto group relative overflow-hidden bg-white text-primary hover:bg-white/90"
                   >
                     <span className="relative z-10 flex items-center">
@@ -449,9 +437,9 @@ export default function Home() {
                   </Button>
                 </Link>
                 <Link href="#pricing">
-                  <Button 
-                    size="lg" 
-                    variant="outline" 
+                  <Button
+                    size="lg"
+                    variant="outline"
                     className="w-full sm:w-auto border-primary/20 hover:bg-primary/10 text-primary hover:text-primary dark:border-white/20 dark:hover:bg-white/10 dark:text-white dark:hover:text-white"
                   >
                     View Pricing
@@ -494,7 +482,8 @@ export default function Home() {
                 },
                 {
                   title: "URL Paraphraser",
-                  description: "Instantly rewrite content from any URL while preserving the original meaning and structure",
+                  description:
+                    "Instantly rewrite content from any URL while preserving the original meaning and structure",
                   icon: <Globe className="h-10 w-10 text-primary" />,
                 },
                 {
@@ -504,7 +493,8 @@ export default function Home() {
                 },
                 {
                   title: "Instant Publishing",
-                  description: "Create and publish new blog posts directly to your WordPress site without switching platforms",
+                  description:
+                    "Create and publish new blog posts directly to your WordPress site without switching platforms",
                   icon: <Zap className="h-10 w-10 text-primary" />,
                 },
                 {
@@ -535,11 +525,14 @@ export default function Home() {
           </div>
         </section>
 
+        {/* How It Works Section */}
+        <HowItWorksSection />
+
         {/* Benefits Section */}
         <section className="py-16 sm:py-20 bg-secondary/50 relative overflow-hidden">
           {/* Background Pattern */}
           <div className="absolute inset-0 bg-grid-black/[0.05] dark:bg-grid-white/[0.05] bg-[size:60px_60px]" />
-          
+
           <div className="container relative mx-auto px-4 text-center">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -562,7 +555,8 @@ export default function Home() {
                 },
                 {
                   title: "Unique Content",
-                  description: "Generate 100% unique content that passes plagiarism checks while maintaining your voice",
+                  description:
+                    "Generate 100% unique content that passes plagiarism checks while maintaining your voice",
                   icon: <Shield className="h-8 w-8 text-primary" />,
                 },
                 {
@@ -579,9 +573,7 @@ export default function Home() {
                   transition={{ duration: 0.5, delay: index * 0.1 }}
                   className="flex flex-col items-center p-6 rounded-xl bg-background/50 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300"
                 >
-                  <div className="p-4 rounded-full bg-primary/10 mb-4">
-                    {benefit.icon}
-                  </div>
+                  <div className="p-4 rounded-full bg-primary/10 mb-4">{benefit.icon}</div>
                   <h3 className="text-xl font-semibold mb-2">{benefit.title}</h3>
                   <p className="text-muted-foreground">{benefit.description}</p>
                 </motion.div>
