@@ -217,16 +217,16 @@ export default function UrlParaphrase() {
         </Button>
       </div>
 
-      {/* Loading state for subscription check */}
-      {isMounted && isAuthenticated() && (
+      {/* Remove the loading state for subscription check */}
+      {/* {isMounted && isAuthenticated() && (
         <Card className="mb-6">
           <CardContent className="p-0">
             <BlogLoadingAnimation message="Checking your subscription status..." />
           </CardContent>
         </Card>
-      )}
+      )} */}
 
-      {/* Subscription warning banner */}
+      {/* Keep the subscription warning banner */}
       {isMounted && isAuthenticated() && !hasUltimatePlan && (
         <Card className="border-amber-300 dark:border-amber-700 mb-8">
           <CardHeader className="bg-amber-50 dark:bg-amber-900/20 border-b border-amber-200 dark:border-amber-800">
@@ -321,4 +321,3 @@ export default function UrlParaphrase() {
     </div>
   )
 }
-

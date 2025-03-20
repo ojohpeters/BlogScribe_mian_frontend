@@ -428,6 +428,15 @@ export default function Subscription() {
               </Card>
             </motion.div>
           )}
+
+          <div className="flex justify-center mt-6">
+            <Button 
+              onClick={() => router.push("/pricing")}
+              className="bg-primary hover:bg-primary/90"
+            >
+              Upgrade Plan
+            </Button>
+          </div>
         </div>
       </PageTransition>
     </>

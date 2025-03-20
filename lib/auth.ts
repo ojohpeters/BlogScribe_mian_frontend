@@ -14,11 +14,6 @@ export async function fetchWithAuth(url: string, options: RequestInit = {}): Pro
   }
 
   const response = await fetch(url, authOptions)
-
-  if (!response.ok) {
-    throw new Error(`HTTP error! Status: ${response.status}`)
-  }
-
   return response
 }
 

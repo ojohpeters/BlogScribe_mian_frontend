@@ -124,7 +124,7 @@ export default function Login() {
             <CardDescription>
               Enter your credentials to access your account
               {returnUrl !== "/dashboard" && (
-                <p className="mt-1 text-sm text-primary">You'll be redirected after login</p>
+                <span className="block mt-1 text-sm text-primary">You'll be redirected after login</span>
               )}
             </CardDescription>
           </CardHeader>

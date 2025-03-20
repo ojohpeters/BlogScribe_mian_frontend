@@ -1,0 +1,333 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Copy, Eye, Loader2, RefreshCw } from "lucide-react";
+import { toast } from "sonner";
+import { fetchWithAuth, isAuthenticated } from "@/lib/auth";
+import { useRouter } from "next/navigation";
+import { useToast } from "@/components/ui/use-toast";
+
+interface CategoryMap {
+  [key: string]: string;
+}
+
+interface TagMap {
+  [key: string]: string;
+}
+
+// Dummy posts data for now
+const dummyPosts = [
+  {
+    id: 1,
+    title: "10 Tips for Better WordPress Performance",
+    url: "https://example.com/post1",
+  },
+  {
+    id: 2,
+    title: "How to Secure Your WordPress Site",
+    url: "https://example.com/post2",
+  },
+  {
+    id: 3,
+    title: "Essential WordPress Plugins for 2024",
+    url: "https://example.com/post3",
+  },
+];
+
+export default function WordPressManagement() {
+  const router = useRouter();
+  const { toast } = useToast();
+  const [categories, setCategories] = useState<CategoryMap>({});
+  const [tags, setTags] = useState<TagMap>({});
+  const [selectedCategory, setSelectedCategory] = useState<string>("");
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isRefreshingCategories, setIsRefreshingCategories] = useState(false);
+  const [isRefreshingTags, setIsRefreshingTags] = useState(false);
+
+  useEffect(() => {
+    // Check if user is authenticated
+    if (!isAuthenticated()) {
+      toast({
+        title: "Authentication required",
+        description: "Please log in to access WordPress management.",
+        variant: "destructive",
+      });
+      router.push("/auth/login?returnUrl=" + encodeURIComponent(window.location.pathname));
+      return;
+    }
+
+    fetchCategoriesAndTags();
+  }, [router, toast]);
+
+  const fetchCategoriesAndTags = async () => {
+    setIsLoading(true);
+    try {
+      // Fetch categories
+      const categoriesResponse = await fetchWithAuth(
+        "http://127.0.0.1:8000/api/get-categories/",
+        {}
+      );
+      console.log("Categories response status:", categoriesResponse.status);
+      const categoriesData = await categoriesResponse.json();
+      console.log("Categories response data:", categoriesData);
+      
+      if (categoriesData.Message === "Error") {
+        throw new Error("Failed to fetch categories");
+      }
+      
+      setCategories(categoriesData);
+      console.log("Categories set:", categoriesData);
+      
+      // Fetch tags
+      const tagsResponse = await fetchWithAuth(
+        "http://127.0.0.1:8000/api/get-tags/",
+        {}
+      );
+      console.log("Tags response status:", tagsResponse.status);
+      const tagsData = await tagsResponse.json();
+      console.log("Tags response data:", tagsData);
+      
+      if (tagsData.error) {
+        throw new Error(tagsData.error);
+      }
+      
+      setTags(tagsData);
+      console.log("Tags set:", tagsData);
+
+      // Store in localStorage
+      localStorage.setItem("wordpress_categories", JSON.stringify(categoriesData));
+      localStorage.setItem("wordpress_tags", JSON.stringify(tagsData));
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      if (error instanceof Error) {
+        if (error.message === "No authentication token found") {
+          toast({
+            title: "Authentication required",
+            description: "Please log in to access WordPress management.",
+            variant: "destructive",
+          });
+          router.push("/auth/login?returnUrl=" + encodeURIComponent(window.location.pathname));
+        } else {
+          toast({
+            title: "Error",
+            description: error.message,
+            variant: "destructive"
+          });
+        }
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to fetch categories and tags",
+          variant: "destructive"
+        });
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCategorySelect = (categoryId: string) => {
+    setSelectedCategory(categoryId);
+    localStorage.setItem("selected_category", categoryId);
+  };
+
+  const handleTagToggle = (tagId: string) => {
+    setSelectedTags(prev => {
+      const newTags = prev.includes(tagId)
+        ? prev.filter(id => id !== tagId)
+        : [...prev, tagId];
+      localStorage.setItem("selected_tags", JSON.stringify(newTags));
+      return newTags;
+    });
+  };
+
+  const copyToClipboard = (url: string) => {
+    navigator.clipboard.writeText(url);
+    toast({
+      title: "Success",
+      description: "URL copied to clipboard!"
+    });
+  };
+
+  const refreshCategories = async () => {
+    setIsRefreshingCategories(true);
+    try {
+      const response = await fetchWithAuth(
+        "http://127.0.0.1:8000/api/get-categories/",
+        {}
+      );
+      const data = await response.json();
+      setCategories(data);
+      localStorage.setItem("wordpress_categories", JSON.stringify(data));
+      toast({
+        title: "Success",
+        description: "Categories refreshed successfully"
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to refresh categories",
+        variant: "destructive"
+      });
+    } finally {
+      setIsRefreshingCategories(false);
+    }
+  };
+
+  const refreshTags = async () => {
+    setIsRefreshingTags(true);
+    try {
+      const response = await fetchWithAuth(
+        "http://127.0.0.1:8000/api/get-tags/",
+        {}
+      );
+      const data = await response.json();
+      setTags(data);
+      localStorage.setItem("wordpress_tags", JSON.stringify(data));
+      toast({
+        title: "Success",
+        description: "Tags refreshed successfully"
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to refresh tags",
+        variant: "destructive"
+      });
+    } finally {
+      setIsRefreshingTags(false);
+    }
+  };
+
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <h1 className="text-3xl font-bold mb-8">WordPress Management</h1>
+      
+      <Tabs defaultValue="posts" className="w-full">
+        <TabsList className="grid w-full grid-cols-3 mb-8">
+          <TabsTrigger value="posts">Posts</TabsTrigger>
+          <TabsTrigger value="categories">Categories</TabsTrigger>
+          <TabsTrigger value="tags">Tags</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="posts">
+          <Card>
+            <CardHeader>
+              <CardTitle>Recent Posts</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4">
+                {dummyPosts.map((post) => (
+                  <div
+                    key={post.id}
+                    className="flex items-center justify-between p-4 border rounded-lg hover:bg-secondary/50"
+                  >
+                    <span className="flex-grow truncate mr-4">{post.title}</span>
+                    <div className="flex gap-2 shrink-0">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => copyToClipboard(post.url)}
+                      >
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => window.open(post.url, "_blank")}
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="categories">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle>Categories</CardTitle>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={refreshCategories}
+                disabled={isRefreshingCategories}
+                className="h-8 w-8 p-0 shrink-0"
+              >
+                <RefreshCw 
+                  className={`h-4 w-4 ${isRefreshingCategories ? 'animate-spin' : ''}`}
+                />
+              </Button>
+            </CardHeader>
+            <CardContent>
+              {isLoading ? (
+                <div className="flex justify-center items-center p-4">
+                  <Loader2 className="h-6 w-6 animate-spin" />
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {Object.entries(categories).map(([id, name]) => (
+                    <Button
+                      key={id}
+                      variant={selectedCategory === id ? "default" : "outline"}
+                      className="w-full justify-start min-h-[2.5rem] h-auto whitespace-normal text-left break-words"
+                      onClick={() => handleCategorySelect(id)}
+                    >
+                      <span className="line-clamp-2">{name}</span>
+                    </Button>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="tags">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle>Tags</CardTitle>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={refreshTags}
+                disabled={isRefreshingTags}
+                className="h-8 w-8 p-0 shrink-0"
+              >
+                <RefreshCw 
+                  className={`h-4 w-4 ${isRefreshingTags ? 'animate-spin' : ''}`}
+                />
+              </Button>
+            </CardHeader>
+            <CardContent>
+              {isLoading ? (
+                <div className="flex justify-center items-center p-4">
+                  <Loader2 className="h-6 w-6 animate-spin" />
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {Object.entries(tags).map(([id, name]) => (
+                    <Button
+                      key={id}
+                      variant={selectedTags.includes(id) ? "default" : "outline"}
+                      className="w-full justify-start min-h-[2.5rem] h-auto whitespace-normal text-left break-words"
+                      onClick={() => handleTagToggle(id)}
+                    >
+                      <span className="line-clamp-2">{name}</span>
+                    </Button>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}

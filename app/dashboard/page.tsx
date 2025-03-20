@@ -378,6 +378,14 @@ export default function Dashboard() {
               <span className="absolute inset-0 bg-primary/10 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-300"></span>
             </Button>
             <Button
+              className="w-full justify-start relative overflow-hidden group rounded-full shadow-sm hover:shadow transition-all duration-200"
+              onClick={() => navigateTo("/wordpress-management")}
+            >
+              <Newspaper className="mr-2 h-4 w-4" />
+              <span className="relative z-10">WordPress Management</span>
+              <span className="absolute inset-0 bg-primary/10 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-300"></span>
+            </Button>
+            <Button
               variant="outline"
               className="w-full justify-start relative overflow-hidden group rounded-full"
               onClick={() => navigateTo("/fetched-posts")}

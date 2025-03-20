@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Input } from "@/components/ui/input"
 import { Slider } from "@/components/ui/slider"
 import { useToast } from "@/components/ui/use-toast"
-import { Loader2, ArrowLeft, Save, RefreshCw, Wand2, AlertTriangle, CheckCircle, AlertCircle, X, TrendingUp, PenTool } from "lucide-react"
+import { Loader2, ArrowLeft, Save, RefreshCw, Wand2, AlertTriangle, CheckCircle, AlertCircle, X, TrendingUp, PenTool, Upload } from "lucide-react"
 import { isAuthenticated, fetchWithAuth, addRecentPost } from "@/lib/utils"
 import dynamic from "next/dynamic"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -20,6 +20,9 @@ import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import type { CheckedState } from "@radix-ui/react-checkbox"
 import { useLoadingState } from "@/lib/hooks/use-loading-state"
+import { Editor } from "@/components/editor"
+import { toast } from "sonner"
+import { PublishSettingsDialog } from "@/components/publish-settings-dialog"
 
 // Import the full-featured markdown editor
 const MDEditor = dynamic(
@@ -121,7 +124,10 @@ const BlogLoadingAnimation = ({ message }: { message: string }) => {
 }
 
 export default function Paraphrase() {
+  const [title, setTitle] = useState("")
   const [content, setContent] = useState("")
+  const [featuredImage, setFeaturedImage] = useState<File | null>(null)
+  const [imagePreview, setImagePreview] = useState<string>("")
   const [originalTitle, setOriginalTitle] = useState("")
   const [originalUrl, setOriginalUrl] = useState("")
   const [wordLength, setWordLength] = useState([1500])
@@ -138,6 +144,14 @@ export default function Paraphrase() {
   const { toast } = useToast()
   const router = useRouter()
   const { isLoading: globalLoading, withLoading } = useLoadingState()
+  const [selectedCategory, setSelectedCategory] = useState<string>("")
+  const [selectedTags, setSelectedTags] = useState<string[]>([])
+  const [isPublishing, setIsPublishing] = useState(false)
+  const [publishSettings, setPublishSettings] = useState({
+    category: "",
+    tags: [] as string[],
+    featuredImage: null as File | null,
+  })
 
   // Calculate word count
   const wordCount = content.trim().split(/\s+/).filter(word => word.length > 0).length
@@ -200,6 +214,10 @@ export default function Paraphrase() {
             console.error("Error parsing SEO data:", error)
           }
         }
+
+        // Get selected category and tags from localStorage
+        const category = localStorage.getItem("selected_category")
+        if (category) setSelectedCategory(category)
 
         setIsInitializing(false)
       } catch (error) {
@@ -396,70 +414,68 @@ export default function Paraphrase() {
 
   // Update the handlePublish function to remove activity recording
   const handlePublish = async () => {
-    setIsLoading(true)
-    try {
-      const response = await fetchWithAuth(
-        "http://127.0.0.1:8000/api/publish/",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            content,
-            title: originalTitle,
-            url: originalUrl,
-            seo_data: seoAnalysis ? {
-              meta_description: metaDescription,
-              focus_keywords: focusKeywords,
-              seo_score: seoAnalysis.score,
-              readability_score: seoAnalysis.readabilityScore,
-              keyword_density: seoAnalysis.keywordDensity,
-            } : null
-          }),
-        },
-        router,
-        toast,
-      )
-
-      const data = await response.json()
-
-      if (data.error) {
-        toast({
-          title: "Error",
-          description: data.error,
-          variant: "destructive",
-        })
-      } else {
-        // Save to recent posts
-        addRecentPost({
-          title: originalTitle,
-                url: originalUrl,
-          date: new Date().toISOString(),
-          excerpt: content.substring(0, 150) + "..."
-        });
-
-        toast({
-          title: "Success",
-          description: "Content published successfully",
-        })
-
-        // Clear the stored paraphrased content since we've published it
-        localStorage.removeItem("paraphrasedContent");
-        
-        // Redirect to dashboard
-        router.push("/dashboard");
-      }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to publish. Please try again.",
-        variant: "destructive",
-      })
-    } finally {
-      setIsLoading(false)
+    if (!title.trim()) {
+      toast.error("Title is required");
+      return;
     }
-  }
+
+    if (!content.trim()) {
+      toast.error("Content is required");
+      return;
+    }
+
+    setIsPublishing(true);
+
+    try {
+      const formData = new FormData();
+      
+      // Split content into title and body
+      const contentLines = content.split('\n');
+      const title = contentLines.slice(0, 2).join('\n').trim();
+      const bodyContent = contentLines.slice(2).join('\n').trim();
+
+      formData.append("title", title);
+      formData.append("content", bodyContent);
+      formData.append("status", "publish");
+      
+      // Add optional settings
+      if (publishSettings.category) {
+        formData.append("categories", publishSettings.category);
+      }
+      
+      publishSettings.tags.forEach(tag => {
+        formData.append("tags", tag);
+      });
+      
+      if (publishSettings.featuredImage) {
+        formData.append("image", publishSettings.featuredImage);
+      }
+
+      const response = await fetchWithAuth("http://127.0.0.1:8000/api/publish/", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to publish post");
+      }
+
+      toast.success("Post published successfully!");
+      
+      // Clear localStorage
+      localStorage.removeItem("paraphrasedContent");
+      localStorage.removeItem("selected_category");
+      localStorage.removeItem("selected_tags");
+      
+      // Redirect to WordPress management page
+      window.location.href = "/wordpress-management";
+    } catch (error) {
+      console.error("Publish error:", error);
+      toast.error("Failed to publish post");
+    } finally {
+      setIsPublishing(false);
+    }
+  };
 
   // Function to analyze SEO
   const analyzeSEO = async () => {
@@ -670,7 +686,7 @@ export default function Paraphrase() {
             <Save className="h-4 w-4 mr-2" />
             Save as Draft
           </Button>
-          <Button variant="default" onClick={handlePublish} disabled={isLoading}>
+          <Button variant="default" onClick={handlePublish} disabled={isPublishing}>
             <ArrowLeft className="h-4 w-4 mr-2 rotate-90" />
             Publish
           </Button>

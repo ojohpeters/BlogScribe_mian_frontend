@@ -5,16 +5,24 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { isAuthenticated, fetchWithAuth } from "@/lib/utils"
+import { isAuthenticated } from "@/lib/utils"
+import { fetchWithAuth } from "@/lib/auth"
 import { Loader2, ArrowRight, FileText, RefreshCw, Globe, Search, Zap, Clock, Shield, Sparkles } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useToast } from "@/components/ui/use-toast"
 import PricingPlans from "@/components/PricingPlans"
 
+interface Post {
+  title: string;
+  url: string;
+}
+
 export default function Home() {
   const [authChecked, setAuthChecked] = useState(false)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [fetchedPosts, setFetchedPosts] = useState<Post[]>([])
+  const [showPosts, setShowPosts] = useState(false)
   const router = useRouter()
   const { toast } = useToast()
 
@@ -72,82 +80,211 @@ export default function Home() {
   // Function to handle the "Try It Now" button click
   const handleTryItNow = async () => {
     setIsLoading(true)
+    setShowPosts(false)
 
     try {
-      let response
-
-      // Use fetchWithAuth for authenticated requests, regular fetch for unauthenticated
-      if (isLoggedIn) {
-        response = await fetchWithAuth("http://127.0.0.1:8000/api/fetch-news/", {
-          method: "GET",
+      // First check if user is logged in
+      if (!isAuthenticated()) {
+        toast({
+          title: "Authentication Required",
+          description: "Please log in to access this feature.",
+          variant: "destructive",
         })
-      } else {
-        response = await fetch("http://127.0.0.1:8000/api/fetch-news/", {
+        router.push("/auth/login?returnUrl=" + encodeURIComponent(window.location.pathname))
+        return
+      }
+
+      const response = await fetchWithAuth(
+        "http://127.0.0.1:8000/api/fetch-news/",
+        {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
           },
+        }
+      )
+
+      // Handle unauthorized response
+      if (response.status === 401) {
+        // Clear the invalid token
+        localStorage.removeItem("authToken")
+        toast({
+          title: "Session Expired",
+          description: "Please log in again to continue.",
+          variant: "destructive",
         })
+        router.push("/auth/login?returnUrl=" + encodeURIComponent(window.location.pathname))
+        return
+      }
+
+      // Handle free trial used case (429 Too Many Requests)
+      if (response.status === 429) {
+        const data = await response.json()
+        if (data.error === "User has already used free trial. No access!") {
+          toast({
+            title: "Free Trial Used",
+            description: "Please subscribe to continue using this feature.",
+            variant: "destructive",
+          })
+          router.push("/pricing")
+          return
+        }
       }
 
       const data = await response.json()
 
-      if (!response.ok) {
-        if (data.error === "User has already used free trial. No access!") {
-          toast({
-            title: "Free Trial Used",
-            description: "You've already used your free trial. Sign up for a plan to continue.",
-            variant: "destructive",
-          })
-          // Scroll to pricing section
-          document.getElementById("pricing")?.scrollIntoView({ behavior: "smooth" })
-        } else {
-          toast({
-            title: "Error",
-            description: data.error || "Something went wrong. Please try again.",
-            variant: "destructive",
-          })
-        }
-      } else {
-        // Success - handle the paraphrasing
-        if (isLoggedIn) {
-          // Store the fetched posts in localStorage for the make-post page
-          localStorage.setItem("fetchedPosts", JSON.stringify(data))
-
-          toast({
-            title: "Success!",
-            description: "Content fetched successfully. Check your dashboard for details.",
-            variant: "default",
-          })
-          router.push("/make-post")
-        } else {
-          // For non-logged in users, show a preview and prompt to sign up
-          localStorage.setItem("previewPosts", JSON.stringify(data))
-
-          toast({
-            title: "Success!",
-            description: "Check out what our tool can do. Sign up to access all features.",
-            variant: "default",
-          })
-
-          // Show a modal or redirect to a preview page
-          const shouldRedirect = confirm("Would you like to see a preview of what you can do with these posts?")
-          if (shouldRedirect) {
-            router.push("/auth/register?showPreview=true")
-          }
-        }
+      // Handle other error cases
+      if (!response.ok || data.error) {
+        throw new Error(data.error || "Failed to fetch posts")
       }
+
+      // Transform the data into the correct format
+      let transformedData: Post[] = []
+      if (typeof data === 'object' && data !== null) {
+        transformedData = Object.entries(data).map(([key, value]) => ({
+          title: key,
+          url: value as string
+        }))
+      }
+
+      // Store the posts and show them
+      setFetchedPosts(transformedData)
+      setShowPosts(true)
+
+      toast({
+        title: "Success!",
+        description: `Retrieved ${transformedData.length} posts.`,
+      })
+
     } catch (error) {
       console.error("Error fetching news:", error)
+      
+      // If the token is missing, redirect to login
+      if (error instanceof Error && error.message === "No authentication token found") {
+        toast({
+          title: "Authentication Required",
+          description: "Please log in to access this feature.",
+          variant: "destructive",
+        })
+        router.push("/auth/login?returnUrl=" + encodeURIComponent(window.location.pathname))
+        return
+      }
+
+      // Handle other errors
       toast({
         title: "Error",
-        description: "Failed to connect to the server. Please try again later.",
+        description: "Failed to fetch posts. Please try again later.",
         variant: "destructive",
       })
     } finally {
       setIsLoading(false)
     }
   }
+
+  const renderTryItNowSection = (isMainSection = false) => (
+    <section className={`py-16 sm:py-20 ${isMainSection ? 'bg-secondary' : ''} relative overflow-hidden`}>
+      {isMainSection && (
+        <div className="absolute inset-0 bg-grid-black/[0.05] dark:bg-grid-white/[0.05] bg-[size:60px_60px]" />
+      )}
+      
+      <div className="container relative mx-auto px-4">
+        <div className="text-center mb-8">
+          <h2 className="text-2xl sm:text-3xl font-bold mb-4">Try Our Tools</h2>
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
+            Fetch your WordPress posts and use our AI to paraphrase them instantly.
+          </p>
+          <Button
+            size="lg"
+            onClick={handleTryItNow}
+            disabled={isLoading}
+            className="relative group overflow-hidden"
+          >
+            <span className="relative z-10 flex items-center">
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                <>
+                  Fetch Latest News
+                  <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
+                </>
+              )}
+            </span>
+            <span className="absolute inset-0 bg-primary-foreground/10 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-300"></span>
+          </Button>
+        </div>
+
+        {/* Display fetched posts */}
+        {showPosts && fetchedPosts.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="mt-8"
+          >
+            <Card>
+              <CardHeader>
+                <CardTitle>Available Posts</CardTitle>
+                <CardDescription>
+                  {isLoggedIn 
+                    ? "Click on a post to paraphrase it" 
+                    : "Sign up to paraphrase these posts and more"}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-4">
+                  {fetchedPosts.map((post, index) => (
+                    <Card key={index} className="overflow-hidden">
+                      <CardContent className="p-4">
+                        <div className="flex flex-col space-y-4">
+                          <div className="space-y-2">
+                            <h3 className="font-semibold text-base sm:text-lg line-clamp-2">
+                              {post.title}
+                            </h3>
+                            <div className="flex items-center text-sm text-muted-foreground">
+                              <Globe className="h-4 w-4 mr-1" />
+                              <a
+                                href={post.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="truncate hover:underline"
+                              >
+                                {post.url}
+                              </a>
+                            </div>
+                          </div>
+                          {isLoggedIn ? (
+                            <Button
+                              onClick={() => {
+                                localStorage.setItem("paraphrasePost", JSON.stringify(post))
+                                router.push("/make-post")
+                              }}
+                              className="w-full sm:w-auto"
+                            >
+                              Paraphrase This Post
+                            </Button>
+                          ) : (
+                            <Button
+                              onClick={() => router.push("/auth/register")}
+                              className="w-full sm:w-auto"
+                            >
+                              Sign Up to Paraphrase
+                            </Button>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+      </div>
+    </section>
+  )
 
   if (!authChecked) {
     return (
@@ -183,37 +320,7 @@ export default function Home() {
           </section>
 
           {/* Try It Now Section for logged-in users */}
-          <section className="py-16 sm:py-20 bg-secondary">
-            <div className="container mx-auto px-4">
-              <div className="text-center mb-8">
-                <h2 className="text-2xl sm:text-3xl font-bold mb-4">Try Our Tools</h2>
-                <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
-                  Fetch your WordPress posts and use our AI to paraphrase them instantly.
-                </p>
-                <Button
-                  size="lg"
-                  onClick={handleTryItNow}
-                  disabled={isLoading}
-                  className="relative group overflow-hidden"
-                >
-                  <span className="relative z-10 flex items-center">
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Processing...
-                      </>
-                    ) : (
-                      <>
-                        Fetch Latest News
-                        <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
-                      </>
-                    )}
-                  </span>
-                  <span className="absolute inset-0 bg-primary-foreground/10 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-300"></span>
-                </Button>
-              </div>
-            </div>
-          </section>
+          {renderTryItNowSection(true)}
         </main>
 
         <footer className="bg-background py-8">
@@ -484,47 +591,7 @@ export default function Home() {
         </section>
 
         {/* Try It Now Section */}
-        <section className="py-16 sm:py-20 bg-secondary relative overflow-hidden">
-          {/* Background Pattern */}
-          <div className="absolute inset-0 bg-grid-black/[0.05] dark:bg-grid-white/[0.05] bg-[size:60px_60px]" />
-          
-          <div className="container relative mx-auto px-4 text-center">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8 }}
-            >
-              <h2 className="text-3xl sm:text-4xl font-bold mb-4 bg-gradient-to-r from-primary to-blue-600 dark:from-blue-400 dark:to-blue-300 bg-clip-text text-transparent">
-                Try It Now
-              </h2>
-              <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
-                Experience the power of our AI tools with a free sample. No login required.
-              </p>
-              <Button 
-                size="lg" 
-                onClick={handleTryItNow} 
-                disabled={isLoading} 
-                className="relative group overflow-hidden bg-primary hover:bg-primary/90"
-              >
-                <span className="relative z-10 flex items-center">
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Processing...
-                    </>
-                  ) : (
-                    <>
-                      Fetch Latest News
-                      <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
-                    </>
-                  )}
-                </span>
-                <span className="absolute inset-0 bg-primary-foreground/10 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-300"></span>
-              </Button>
-            </motion.div>
-          </div>
-        </section>
+        {renderTryItNowSection(true)}
 
         {/* Pricing Section */}
         <section id="pricing" className="py-16 sm:py-20 bg-background">
