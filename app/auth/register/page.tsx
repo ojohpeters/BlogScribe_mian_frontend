@@ -42,7 +42,7 @@ export default function Register() {
     setIsSubmitting(true)
 
     try {
-      const response = await fetch("https://blogbackend-crimson-frog-3248.fly.dev/api/auth/register/", {
+      const response = await fetch("https://blogbackend-crimson-frog-3248.fly.dev/api/users/register/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
