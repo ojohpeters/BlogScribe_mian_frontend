@@ -148,7 +148,7 @@ export default function Register() {
               <div className="space-y-2">
                 <Input
                   id="wordpress_password"
-                  placeholder="WordPress Password"
+                  placeholder="WordPress Application Password"
                   type="password"
                   value={wordpressPassword}
                   onChange={(e) => setWordpressPassword(e.target.value)}
