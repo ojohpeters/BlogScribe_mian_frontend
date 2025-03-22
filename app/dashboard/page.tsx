@@ -110,7 +110,7 @@ export default function Dashboard() {
   // Fetch user activity details from the API
   const fetchUserActivity = async (signal?: AbortSignal) => {
     try {
-      const response = await fetchWithAuth("http://127.0.0.1:8000/api/details/", { signal }, router, toast)
+      const response = await fetchWithAuth("https://blogbackend-crimson-frog-3248.fly.dev/api/details/", { signal }, router, toast)
 
       // Check for auth errors but don't proceed with processing the response
       if (response.status === 401) {
@@ -238,7 +238,7 @@ export default function Dashboard() {
               onClick={async () => {
                 try {
                   const response = await fetchWithAuth(
-                    "http://127.0.0.1:8000/api/sync/",
+                    "https://blogbackend-crimson-frog-3248.fly.dev/api/sync/",
                     { method: "GET" },
                     router,
                     toast,

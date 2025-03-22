@@ -43,14 +43,12 @@ export default function MakePost() {
     setIsLoading(true)
     try {
       const response = await fetchWithAuth(
-        "http://127.0.0.1:8000/api/fetch-news/",
+        "https://blogbackend-crimson-frog-3248.fly.dev/api/fetch-news/",
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          // You can also include a body if needed:
-          // body: JSON.stringify({ key: "value" }),
         },
         router,
         typeof toast === "function" ? toast : toast.toast,
@@ -111,7 +109,7 @@ export default function MakePost() {
     setIsParaphrasing(true)
     try {
       const response = await fetchWithAuth(
-        "http://127.0.0.1:8000/api/paraphrase/",
+        "https://blogbackend-crimson-frog-3248.fly.dev/api/paraphrase/",
         {
           method: "POST",
           headers: {

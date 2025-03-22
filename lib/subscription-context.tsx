@@ -73,7 +73,7 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
       }
 
       // If no cached data or cache expired, fetch from API
-      const response = await fetch("http://127.0.0.1:8000/api/subscription/details/", {
+      const response = await fetch("https://blogbackend-crimson-frog-3248.fly.dev/api/subscription/details/", {
         headers: {
           Authorization: `Bearer ${token}`,
         },

@@ -21,6 +21,7 @@ import { useToast } from "@/components/ui/use-toast"
 import { useUser } from "@/lib/user-context"
 import Link from "next/link"
 import { PageLoading } from "@/components/ui/page-loading"
+import { useMediaQuery } from "@/hooks/use-media-query"
 
 interface DesktopNavProps {
   onLogout?: () => void
@@ -49,17 +50,28 @@ export function DesktopNav({ onLogout }: DesktopNavProps) {
   const { toast } = useToast()
   const { user, clearUserData } = useUser()
 
+  const isDesktop = useMediaQuery("(min-width: 768px)")
+
+  if (!isDesktop) {
+    return null
+  }
+
   // Prevent hydration mismatch
   useEffect(() => {
     setIsMounted(true)
+  }, [])
+
+  useEffect(() => {
     // Check authentication status when component mounts or user changes
-    const token = localStorage.getItem("authToken")
-    if (token) {
-      setIsAuthenticated(true)
-    } else {
-      setIsAuthenticated(false)
+    if (isMounted) {
+      const token = localStorage.getItem("authToken")
+      if (token) {
+        setIsAuthenticated(true)
+      } else {
+        setIsAuthenticated(false)
+      }
     }
-  }, [user]) // Add user as a dependency to re-check when user changes
+  }, [isMounted, user]) // Add user as a dependency to re-check when user changes
 
   if (!isMounted) {
     return null
@@ -75,7 +87,7 @@ export function DesktopNav({ onLogout }: DesktopNavProps) {
         const refreshToken = localStorage.getItem("refreshToken")
 
         if (token && refreshToken) {
-          const response = await fetch("http://127.0.0.1:8000/api/users/logout/", {
+          const response = await fetch("https://blogbackend-crimson-frog-3248.fly.dev/api/users/logout/", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",

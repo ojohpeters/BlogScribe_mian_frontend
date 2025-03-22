@@ -298,7 +298,7 @@ export default function Paraphrase() {
   const fetchSubscriptionStatus = async () => {
     setIsLoadingSubscription(true)
     try {
-      const response = await fetchWithAuth("http://127.0.0.1:8000/api/subscription/details/", {}, router, toast)
+      const response = await fetchWithAuth("https://blogbackend-crimson-frog-3248.fly.dev/api/subscription/details/", {}, router, toast)
 
       if (response.ok) {
         const data = await response.json()
@@ -333,7 +333,7 @@ export default function Paraphrase() {
     setIsLoading(true)
     try {
       const response = await fetchWithAuth(
-        "http://127.0.0.1:8000/api/reparaphrase/",
+        "https://blogbackend-crimson-frog-3248.fly.dev/api/reparaphrase/",
         {
           method: "POST",
           headers: {
@@ -505,7 +505,7 @@ export default function Paraphrase() {
       }
 
       const response = await fetchWithAuth(
-        "http://127.0.0.1:8000/api/publish/",
+        "https://blogbackend-crimson-frog-3248.fly.dev/api/publish/",
         {
           method: "POST",
           body: formData,

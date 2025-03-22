@@ -76,7 +76,7 @@ export default function UrlParaphrase() {
         const token = localStorage.getItem("authToken")
         if (!token) return
 
-        const response = await fetch("http://127.0.0.1:8000/api/subscription/details/", {
+        const response = await fetch("https://blogbackend-crimson-frog-3248.fly.dev/api/subscription/details/", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -152,7 +152,7 @@ export default function UrlParaphrase() {
     try {
       await withLoading(async () => {
         const response = await fetchWithAuth(
-          "http://127.0.0.1:8000/api/paraphrase/",
+          "https://blogbackend-crimson-frog-3248.fly.dev/api/paraphrase/",
           {
             method: "POST",
             headers: {

@@ -90,7 +90,7 @@ export default function MakePost() {
     try {
       await withLoading(async () => {
         const response = await fetchWithAuth(
-          "http://127.0.0.1:8000/api/fetch-news/",
+          "https://blogbackend-crimson-frog-3248.fly.dev/api/fetch-news/",
           {
             method: "POST",
             headers: {
@@ -156,7 +156,7 @@ export default function MakePost() {
     try {
       await withLoading(async () => {
         const response = await fetchWithAuth(
-          "http://127.0.0.1:8000/api/paraphrase/",
+          "https://blogbackend-crimson-frog-3248.fly.dev/api/paraphrase/",
           {
             method: "POST",
             headers: {

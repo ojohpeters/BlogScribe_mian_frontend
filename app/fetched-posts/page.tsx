@@ -52,7 +52,7 @@ export default function FetchedPosts() {
   const fetchSubscriptionStatus = async () => {
     setIsLoadingSubscription(true)
     try {
-      const response = await fetchWithAuth("http://127.0.0.1:8000/api/subscription/details/", {}, router, toast)
+      const response = await fetchWithAuth("https://blogbackend-crimson-frog-3248.fly.dev/api/subscription/details/", {}, router, toast)
 
       if (response.ok) {
         const data = await response.json()
@@ -75,7 +75,7 @@ export default function FetchedPosts() {
     setIsLoading(true)
     setError(null)
     try {
-      const response = await fetchWithAuth("http://127.0.0.1:8000/api/fetched", {}, router, toast)
+      const response = await fetchWithAuth("https://blogbackend-crimson-frog-3248.fly.dev/api/fetched", {}, router, toast)
 
       const data = await response.json()
       setPosts(data)
@@ -110,7 +110,7 @@ export default function FetchedPosts() {
     setIsParaphrasing(post.id)
     try {
       const response = await fetchWithAuth(
-        "http://127.0.0.1:8000/api/paraphrase/",
+        "https://blogbackend-crimson-frog-3248.fly.dev/api/paraphrase/",
         {
           method: "POST",
           headers: {

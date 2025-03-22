@@ -69,7 +69,7 @@ export default function DashboardLayout({
 
       try {
         // First, check user profile to see if they've subscribed before
-        const userResponse = await fetchWithAuth("http://127.0.0.1:8000/api/users/user/", {}, router, toast)
+        const userResponse = await fetchWithAuth("https://blogbackend-crimson-frog-3248.fly.dev/api/users/user/", {}, router, toast)
 
         if (!userResponse.ok) {
           // Handle specific error codes
@@ -106,7 +106,7 @@ export default function DashboardLayout({
 
         // Check current subscription status
         const subscriptionResponse = await fetchWithAuth(
-          "http://127.0.0.1:8000/api/subscription/details/",
+          "https://blogbackend-crimson-frog-3248.fly.dev/api/subscription/details/",
           {},
           router,
           toast,
@@ -152,7 +152,7 @@ export default function DashboardLayout({
 
       if (token && refreshToken) {
         await fetchWithAuth(
-          "http://127.0.0.1:8000/api/users/logout/",
+          "https://blogbackend-crimson-frog-3248.fly.dev/api/users/logout/",
           {
             method: "POST",
             headers: {

@@ -59,7 +59,7 @@ export default function WordPressManagement() {
   const fetchPosts = async () => {
     setIsRefreshingPosts(true)
     try {
-      const response = await fetchWithAuth("http://127.0.0.1:8000/api/get-posts/", {})
+      const response = await fetchWithAuth("https://blogbackend-crimson-frog-3248.fly.dev/api/get-posts/", {})
       console.log("Posts response status:", response.status)
       const data = await response.json()
       console.log("Posts response data:", data)
@@ -121,7 +121,7 @@ export default function WordPressManagement() {
     setIsLoading(true)
     try {
       // Fetch categories
-      const categoriesResponse = await fetchWithAuth("http://127.0.0.1:8000/api/get-categories/", {})
+      const categoriesResponse = await fetchWithAuth("https://blogbackend-crimson-frog-3248.fly.dev/api/get-categories/", {})
       console.log("Categories response status:", categoriesResponse.status)
       const categoriesData = await categoriesResponse.json()
       console.log("Categories response data:", categoriesData)
@@ -134,7 +134,7 @@ export default function WordPressManagement() {
       console.log("Categories set:", categoriesData)
 
       // Fetch tags
-      const tagsResponse = await fetchWithAuth("http://127.0.0.1:8000/api/get-tags/", {})
+      const tagsResponse = await fetchWithAuth("https://blogbackend-crimson-frog-3248.fly.dev/api/get-tags/", {})
       console.log("Tags response status:", tagsResponse.status)
       const tagsData = await tagsResponse.json()
       console.log("Tags response data:", tagsData)
@@ -202,7 +202,7 @@ export default function WordPressManagement() {
   const refreshCategories = async () => {
     setIsRefreshingCategories(true)
     try {
-      const response = await fetchWithAuth("http://127.0.0.1:8000/api/get-categories/", {})
+      const response = await fetchWithAuth("https://blogbackend-crimson-frog-3248.fly.dev/api/get-categories/", {})
       const data = await response.json()
       setCategories(data)
       localStorage.setItem("wordpress_categories", JSON.stringify(data))
@@ -224,7 +224,7 @@ export default function WordPressManagement() {
   const refreshTags = async () => {
     setIsRefreshingTags(true)
     try {
-      const response = await fetchWithAuth("http://127.0.0.1:8000/api/get-tags/", {})
+      const response = await fetchWithAuth("https://blogbackend-crimson-frog-3248.fly.dev/api/get-tags/", {})
       const data = await response.json()
       setTags(data)
       localStorage.setItem("wordpress_tags", JSON.stringify(data))

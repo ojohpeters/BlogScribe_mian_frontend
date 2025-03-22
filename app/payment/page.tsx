@@ -45,7 +45,7 @@ export default function Payment() {
       if (!planId) {
         // If no plan_id is provided, fetch all plans and select the first one
         try {
-          const response = await fetchWithAuth("http://127.0.0.1:8000/api/subscription/plans", {}, router, toast)
+          const response = await fetchWithAuth("https://blogbackend-crimson-frog-3248.fly.dev/api/subscription/plans", {}, router, toast)
 
           const plans = await response.json()
           if (plans && plans.length > 0) {
@@ -66,7 +66,7 @@ export default function Payment() {
       } else {
         // If plan_id is provided, fetch that specific plan
         try {
-          const response = await fetchWithAuth(`http://127.0.0.1:8000/api/subscription/plans${planId ? `/${planId}` : ''}`, {}, router, toast)
+          const response = await fetchWithAuth(`https://blogbackend-crimson-frog-3248.fly.dev/api/subscription/plans${planId ? `/${planId}` : ''}`, {}, router, toast)
 
           const plan = await response.json()
           setSelectedPlan(plan)
@@ -95,7 +95,7 @@ export default function Payment() {
     try {
       // Send a POST request to get the payment URL
       const response = await fetchWithAuth(
-        "http://127.0.0.1:8000/api/subscription/subscribe",
+        "https://blogbackend-crimson-frog-3248.fly.dev/api/subscription/subscribe",
         {
           method: "POST",
           headers: {

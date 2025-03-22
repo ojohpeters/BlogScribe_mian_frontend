@@ -12,7 +12,7 @@ import PaymentPlan from "./payment-plan"
 import type { BlogPost, ParaphraseResponse } from "@/types/blog"
 
 const STORAGE_KEY = "wordpress_blog_posts"
-const API_BASE_URL = "http://127.0.0.1:8000"
+const API_BASE_URL = "https://blogbackend-crimson-frog-3248.fly.dev"
 const REQUEST_LIMIT = 5
 const REQUEST_TIMEOUT = 60 * 1000 // 1 minute
 

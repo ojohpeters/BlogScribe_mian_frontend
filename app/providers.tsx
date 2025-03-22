@@ -15,7 +15,7 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
           return
         }
 
-        const response = await fetch("http://127.0.0.1:8000/api/subscription/details/", {
+        const response = await fetch("https://blogbackend-crimson-frog-3248.fly.dev/api/subscription/details/", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -54,7 +54,7 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
     }
 
     try {
-      const response = await fetch("http://127.0.0.1:8000/api/subscription/details/", {
+      const response = await fetch("https://blogbackend-crimson-frog-3248.fly.dev/api/subscription/details/", {
         headers: {
           Authorization: `Bearer ${token}`,
         },

@@ -73,7 +73,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
   // Helper function to refresh user data from API
   const refreshUserData = async (token: string) => {
     try {
-      const response = await fetch("http://127.0.0.1:8000/api/users/user/", {
+      const response = await fetch("https://blogbackend-crimson-frog-3248.fly.dev/api/users/user/", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -84,7 +84,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
         // Fetch subscription details to get plan name
         try {
-          const subscriptionResponse = await fetch("http://127.0.0.1:8000/api/subscription/details/", {
+          const subscriptionResponse = await fetch("https://blogbackend-crimson-frog-3248.fly.dev/api/subscription/details/", {
             headers: {
               Authorization: `Bearer ${token}`,
             },

@@ -95,7 +95,7 @@ export default function Home() {
         return
       }
 
-      const response = await fetchWithAuth("http://127.0.0.1:8000/api/fetch-news/", {
+      const response = await fetchWithAuth("https://blogbackend-crimson-frog-3248.fly.dev/api/fetch-news/", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -380,11 +380,11 @@ export default function Home() {
                 Supercharge Your WordPress Blog
               </motion.h2>
 
-              {/* Improved animated text display */}
-              <div className="h-16 mb-6 flex items-center justify-center">
-                <div className="text-2xl sm:text-3xl font-semibold inline-flex items-center">
-                  <span className="mr-2">Easily</span>
-                  <div className="relative h-10 overflow-hidden min-w-[180px] inline-flex items-center justify-start">
+              {/* Improved animated text display - mobile friendly */}
+              <div className="mb-6 px-4">
+                <div className="text-xl sm:text-2xl md:text-3xl font-semibold flex flex-col sm:flex-row items-center justify-center">
+                  <span className="mb-2 sm:mb-0 sm:mr-2">Easily</span>
+                  <div className="relative h-10 w-full sm:w-auto min-w-[180px] flex items-center justify-center sm:justify-start">
                     <AnimatePresence mode="wait">
                       <motion.span
                         key={typedText}
@@ -403,7 +403,7 @@ export default function Home() {
                       </motion.span>
                     </AnimatePresence>
                   </div>
-                  <span className="ml-2">Your Content</span>
+                  <span className="mt-2 sm:mt-0 sm:ml-2">Your Content</span>
                 </div>
               </div>
 

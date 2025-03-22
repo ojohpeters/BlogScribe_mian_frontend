@@ -51,7 +51,7 @@ export default function Login() {
     try {
       console.log("Sending login request with:", values)
 
-      const response = await fetch("http://127.0.0.1:8000/api/users/login/", {
+      const response = await fetch("https://blogbackend-crimson-frog-3248.fly.dev/api/users/login/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

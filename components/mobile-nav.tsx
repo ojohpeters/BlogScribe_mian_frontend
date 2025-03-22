@@ -11,7 +11,6 @@ import { useToast } from "@/components/ui/use-toast"
 import { useUser } from "@/lib/user-context"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import Link from "next/link"
-import { ScrollArea } from "@/components/ui/scroll-area"
 import { PageLoading } from "@/components/ui/page-loading"
 
 interface MobileNavProps {
@@ -70,7 +69,7 @@ export function MobileNav({ items }: MobileNavProps) {
       const refreshToken = localStorage.getItem("refreshToken")
 
       if (token && refreshToken) {
-        const response = await fetch("http://127.0.0.1:8000/api/users/logout/", {
+        const response = await fetch("https://blogbackend-crimson-frog-3248.fly.dev/api/users/logout/", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -136,76 +135,86 @@ export function MobileNav({ items }: MobileNavProps) {
       </div>
 
       {/* Mobile Menu Button (for more options) */}
-      <div className="fixed right-4 top-4 z-50 md:hidden">
-        <Sheet open={open} onOpenChange={setOpen}>
-          <SheetTrigger asChild>
-            <Button variant="outline" size="icon" className="rounded-full shadow-sm">
-              <Menu className="h-5 w-5" />
-              <span className="sr-only">Toggle menu</span>
-            </Button>
-          </SheetTrigger>
-          <SheetContent
-            side="right"
-            className="w-[300px] sm:w-[400px] border-l border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80"
-            title="Navigation Menu"
-          >
-            <div className="flex flex-col space-y-6 pt-6">
-              <div className="flex items-center justify-between">
-                <Link href="/" className="flex items-center">
-                  <span className="font-bold">BlogScribe</span>
-                </Link>
-                <ThemeToggle />
-              </div>
-
-              {isAuthenticated && user && (
-                <div className="flex items-center space-x-3 p-4 border rounded-md bg-card">
-                  <Avatar className="h-10 w-10">
-                    <AvatarImage src="/placeholder.svg" alt={user.username} />
-                    <AvatarFallback className="bg-primary/10 text-primary">{getUserInitials()}</AvatarFallback>
-                  </Avatar>
-                  <div className="flex flex-col">
-                    <p className="text-sm font-medium">{user.username}</p>
-                    <p className="text-xs text-muted-foreground">{user.email}</p>
-                  </div>
+      <div className="fixed top-0 left-0 z-50 w-full flex justify-between items-center p-4 md:hidden bg-white dark:bg-gray-900 border-b shadow-sm">
+        <div>
+          <Sheet open={open} onOpenChange={setOpen}>
+            <SheetTrigger asChild>
+              <Button variant="outline" size="icon" className="rounded-full shadow-sm">
+                <Menu className="h-5 w-5" />
+                <span className="sr-only">Toggle menu</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent
+              side="left"
+              className="w-[300px] sm:w-[400px] border-r border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80"
+              title="Navigation Menu"
+            >
+              <div className="flex flex-col space-y-6 pt-6">
+                <div className="flex items-center justify-between">
+                  <Link href="/" className="flex items-center">
+                    <span className="font-bold">BlogScribe</span>
+                  </Link>
+                  <ThemeToggle />
                 </div>
-              )}
 
-              <nav className="flex flex-col space-y-2">
-                {routes.map((route) => {
-                  const Icon = route.icon
-                  const isActive = pathname === route.href
+                {isAuthenticated && user && (
+                  <div className="flex items-center space-x-3 p-4 border rounded-md bg-card">
+                    <Avatar className="h-10 w-10">
+                      <AvatarImage src="/placeholder.svg" alt={user.username} />
+                      <AvatarFallback className="bg-primary/10 text-primary">{getUserInitials()}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex flex-col">
+                      <p className="text-sm font-medium">{user.username}</p>
+                      <p className="text-xs text-muted-foreground">{user.email}</p>
+                    </div>
+                  </div>
+                )}
 
-                  return (
-                    <Link
-                      key={route.href}
-                      href={route.href}
-                      onClick={() => setOpen(false)}
-                      className={cn(
-                        "flex items-center space-x-2 rounded-md px-3 py-2 text-muted-foreground transition-all duration-200 hover:bg-accent hover:text-accent-foreground",
-                        isActive && "bg-primary/10 text-primary font-medium",
-                      )}
-                    >
-                      <Icon className="h-5 w-5" />
-                      <span>{route.label}</span>
-                    </Link>
-                  )
-                })}
-              </nav>
-              {isAuthenticated && (
-                <Button
-                  variant="destructive"
-                  className="mt-auto rounded-full"
-                  onClick={() => {
-                    handleLogout()
-                    setOpen(false)
-                  }}
-                >
-                  Logout
-                </Button>
-              )}
-            </div>
-          </SheetContent>
-        </Sheet>
+                <nav className="flex flex-col space-y-2">
+                  {routes.map((route) => {
+                    const Icon = route.icon
+                    const isActive = pathname === route.href
+
+                    return (
+                      <Link
+                        key={route.href}
+                        href={route.href}
+                        onClick={() => setOpen(false)}
+                        className={cn(
+                          "flex items-center space-x-2 rounded-md px-3 py-2 text-muted-foreground transition-all duration-200 hover:bg-accent hover:text-accent-foreground",
+                          isActive && "bg-primary/10 text-primary font-medium",
+                        )}
+                      >
+                        <Icon className="h-5 w-5" />
+                        <span>{route.label}</span>
+                      </Link>
+                    )
+                  })}
+                </nav>
+                {isAuthenticated && (
+                  <Button
+                    variant="destructive"
+                    className="mt-auto rounded-full"
+                    onClick={() => {
+                      handleLogout()
+                      setOpen(false)
+                    }}
+                  >
+                    Logout
+                  </Button>
+                )}
+              </div>
+            </SheetContent>
+          </Sheet>
+        </div>
+        <div className="text-center flex-1">
+          <Link href="/" className="font-bold text-lg">
+            BlogScribe
+          </Link>
+        </div>
+        <div>
+          <ThemeToggle />
+        </div>
       </div>
     </>
   )

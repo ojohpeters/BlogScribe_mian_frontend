@@ -31,7 +31,7 @@ export default function Profile() {
   // Update the fetchProfileData function to use fetchWithAuth
   const fetchProfileData = async () => {
     try {
-      const response = await fetchWithAuth("http://127.0.0.1:8000/api/users/user/", {}, router, toast)
+      const response = await fetchWithAuth("https://blogbackend-crimson-frog-3248.fly.dev/api/users/user/", {}, router, toast)
 
       if (!response.ok) {
         throw new Error("Failed to fetch profile data")
@@ -62,7 +62,7 @@ export default function Profile() {
     setIsSaving(true)
     try {
       const response = await fetchWithAuth(
-        "http://127.0.0.1:8000/api/users/update/",
+        "https://blogbackend-crimson-frog-3248.fly.dev/api/users/update/",
         {
           method: "PUT",
           headers: {

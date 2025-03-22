@@ -58,7 +58,7 @@ export default function ResetPasswordPage() {
     setErrorMessage(null)
 
     try {
-      const response = await fetch("http://127.0.0.1:8000/api/password-reset/confirm/", {
+      const response = await fetch("https://blogbackend-crimson-frog-3248.fly.dev/api/password-reset/confirm/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

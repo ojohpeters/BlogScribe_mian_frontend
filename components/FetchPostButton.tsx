@@ -38,7 +38,7 @@ export default function FetchPostButton() {
       const token = localStorage.getItem("authToken")
       if (!token) return
 
-      const response = await fetch("http://127.0.0.1:8000/api/subscription/details/", {
+      const response = await fetch("https://blogbackend-crimson-frog-3248.fly.dev/api/subscription/details/", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -76,7 +76,7 @@ export default function FetchPostButton() {
     setIsLoading(true)
     try {
       const token = localStorage.getItem("authToken")
-      const response = await fetch("http://127.0.0.1:8000/api/posted/", {
+      const response = await fetch("https://blogbackend-crimson-frog-3248.fly.dev/api/posted/", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -139,7 +139,7 @@ export default function FetchPostButton() {
     setIsParaphrasing(url)
     try {
       const token = localStorage.getItem("authToken")
-      const response = await fetch("http://127.0.0.1:8000/api/paraphrase/", {
+      const response = await fetch("https://blogbackend-crimson-frog-3248.fly.dev/api/paraphrase/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

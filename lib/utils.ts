@@ -70,7 +70,7 @@ export async function refreshToken(): Promise<boolean> {
       return false
     }
 
-    const response = await fetch("http://127.0.0.1:8000/api/users/token/refresh/", {
+    const response = await fetch("https://blogbackend-crimson-frog-3248.fly.dev/api/users/token/refresh/", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -164,7 +164,7 @@ export async function fetchWithAuth(
 // Check if user has subscribed before
 export async function hasUserSubscribedBefore(router: any, toast: any): Promise<boolean> {
   try {
-    const response = await fetchWithAuth("http://127.0.0.1:8000/api/users/user/", {}, router, toast)
+    const response = await fetchWithAuth("https://blogbackend-crimson-frog-3248.fly.dev/api/users/user/", {}, router, toast)
 
     if (!response.ok) {
       return false
@@ -181,7 +181,7 @@ export async function hasUserSubscribedBefore(router: any, toast: any): Promise<
 // Check if user has an active subscription
 export async function hasActiveSubscription(router: any, toast: any): Promise<boolean> {
   try {
-    const response = await fetchWithAuth("http://127.0.0.1:8000/api/subscription/details/", {}, router, toast)
+    const response = await fetchWithAuth("https://blogbackend-crimson-frog-3248.fly.dev/api/subscription/details/", {}, router, toast)
 
     if (!response.ok) {
       return false
