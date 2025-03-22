@@ -135,7 +135,7 @@ export function MobileNav({ items }: MobileNavProps) {
       </div>
 
       {/* Mobile Menu Button (for more options) */}
-      <div className="fixed top-0 left-0 z-50 w-full flex justify-between items-center p-4 md:hidden bg-white dark:bg-gray-900 border-b shadow-sm">
+      <div className="fixed top-0 left-0 z-50 w-full flex justify-between items-center p-4 md:hidden bg-white dark:bg-gray-900 border-b shadow-sm" pb-4>
         <div>
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>

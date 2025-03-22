@@ -25,7 +25,7 @@ export function SubscriptionBanner() {
     const checkSubscription = async () => {
       try {
         // First check user profile to see if they've subscribed before
-        const userResponse = await fetchWithAuth("http://127.0.0.1:8000/api/users/user/", {}, router, toast)
+        const userResponse = await fetchWithAuth("https://blogbackend-crimson-frog-3248.fly.dev/api/users/user/", {}, router, toast)
 
         if (!userResponse.ok) {
           return
@@ -41,7 +41,7 @@ export function SubscriptionBanner() {
         if (userData.has_subscribed) {
           try {
             const subscriptionResponse = await fetchWithAuth(
-              "http://127.0.0.1:8000/api/subscription/details/",
+              "https://blogbackend-crimson-frog-3248.fly.dev/api/subscription/details/",
               {},
               router,
               toast,
