@@ -49,12 +49,7 @@ export function DesktopNav({ onLogout }: DesktopNavProps) {
   const router = useRouter()
   const { toast } = useToast()
   const { user, clearUserData } = useUser()
-
   const isDesktop = useMediaQuery("(min-width: 768px)")
-
-  if (!isDesktop) {
-    return null
-  }
 
   // Prevent hydration mismatch
   useEffect(() => {
@@ -71,9 +66,9 @@ export function DesktopNav({ onLogout }: DesktopNavProps) {
         setIsAuthenticated(false)
       }
     }
-  }, [isMounted, user]) // Add user as a dependency to re-check when user changes
+  }, [isMounted, user])
 
-  if (!isMounted) {
+  if (!isDesktop || !isMounted) {
     return null
   }
 
@@ -87,7 +82,7 @@ export function DesktopNav({ onLogout }: DesktopNavProps) {
         const refreshToken = localStorage.getItem("refreshToken")
 
         if (token && refreshToken) {
-          const response = await fetch("https://blogbackend-crimson-frog-3248.fly.dev/api/users/logout/", {
+          const response = await fetch("http://127.0.0.1:8000/api/users/logout/", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",

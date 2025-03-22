@@ -41,7 +41,7 @@ export default function PricingPlans({ showFeaturedOnly = true }: PricingPlansPr
       setError(null)
 
       try {
-        const response = await fetch("https://blogbackend-crimson-frog-3248.fly.dev/api/subscription/plans")
+        const response = await fetch("https://blogbackend-crimson-frog-3248.fly.dev/api/subscription/plans/")
 
         if (!response.ok) {
           throw new Error(`Failed to fetch plans: ${response.status}`)
