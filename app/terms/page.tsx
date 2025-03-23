@@ -18,7 +18,7 @@ export default function TermsAndConditions() {
         <section>
           <h2 className="text-2xl font-semibold mb-4">2. Service Description</h2>
           <p>
-            Bloga provides an automated WordPress blog content management service that includes:
+            Blogscribe provides an automated WordPress blog content management service that includes:
           </p>
           <ul className="list-disc pl-6 mt-2">
             <li>Automated content fetching from various sources</li>
@@ -122,7 +122,7 @@ export default function TermsAndConditions() {
         <section>
           <h2 className="text-2xl font-semibold mb-4">10. Contact</h2>
           <p>
-            For questions about these terms, contact us at support@bloga.com
+            For questions about these terms, contact us at support@Blogscribe.com
           </p>
         </section>
 
