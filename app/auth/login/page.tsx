@@ -12,8 +12,9 @@ import { Form, FormControl, FormField, FormItem, FormMessage } from "@/component
 import { useToast } from "@/components/ui/use-toast"
 import { FloatingLabelInput } from "@/components/ui/floating-label-input"
 import { PageTransition } from "@/components/page-transition"
-import { Loader2 } from "lucide-react"
+import { Loader2, AlertCircle } from "lucide-react"
 import { useUser } from "@/lib/user-context"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 
 const formSchema = z.object({
   username: z.string().min(3, {
@@ -27,6 +28,8 @@ const formSchema = z.object({
 export default function Login() {
   const [isLoading, setIsLoading] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [emailNotVerified, setEmailNotVerified] = useState(false)
+  const [userEmail, setUserEmail] = useState("")
   const router = useRouter()
   const searchParams = useSearchParams()
   const { toast } = useToast()
@@ -47,6 +50,7 @@ export default function Login() {
 
     setIsLoading(true)
     setIsSubmitting(true)
+    setEmailNotVerified(false)
 
     try {
       console.log("Sending login request with:", values)
@@ -64,6 +68,16 @@ export default function Login() {
       console.log("Login response data:", data)
 
       if (!response.ok) {
+        // Check for email verification error
+        if (data.detail === "Email Not Verified") {
+          setEmailNotVerified(true)
+          // Try to extract email from username if it looks like an email
+          if (values.username.includes("@")) {
+            setUserEmail(values.username)
+          }
+          return
+        }
+
         if (data.detail) {
           toast({
             title: "Login failed",
@@ -113,6 +127,10 @@ export default function Login() {
     }
   }
 
+  const handleVerificationRequest = () => {
+    router.push(`/auth/verify-email${userEmail ? `?email=${encodeURIComponent(userEmail)}` : ""}`)
+  }
+
   return (
     <PageTransition>
       <div className="container flex items-center justify-center min-h-[calc(100vh-4rem)] py-10">
@@ -129,6 +147,16 @@ export default function Login() {
             </CardDescription>
           </CardHeader>
           <CardContent>
+            {emailNotVerified && (
+              <Alert variant="destructive" className="mb-6">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>Your email is not verified. Please verify your email to continue.</AlertDescription>
+                <Button variant="outline" size="sm" className="mt-2 w-full" onClick={handleVerificationRequest}>
+                  Get Verification Link
+                </Button>
+              </Alert>
+            )}
+
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 <FormField
@@ -160,6 +188,11 @@ export default function Login() {
                     </FormItem>
                   )}
                 />
+                <div className="flex justify-end">
+                  <Link href="/auth/reset-password" className="text-sm text-primary hover:underline">
+                    Forgot password?
+                  </Link>
+                </div>
                 <Button
                   type="submit"
                   className="w-full rounded-full shadow-md hover:shadow-lg transition-all duration-300"
@@ -187,12 +220,6 @@ export default function Login() {
                 Sign up
               </Link>
             </div>
-            <div className="text-sm text-center text-muted-foreground">
-            <Link href="/auth/forgot-password" className="text-primary hover:underline font-medium">
-              Forgot password?
-            </Link>
-          </div>
-
           </CardFooter>
         </Card>
       </div>

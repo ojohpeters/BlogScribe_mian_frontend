@@ -10,7 +10,7 @@ export default function TermsAndConditions() {
       <div className="prose dark:prose-invert max-w-none space-y-6">
         <section>
           <h2 className="text-2xl font-semibold mb-4">1. Introduction</h2>
-          <p>
+          <p>k
             Welcome to Blogscribe. By using our service, you agree to these terms and conditions. Please read them carefully before using the platform.
           </p>
         </section>
