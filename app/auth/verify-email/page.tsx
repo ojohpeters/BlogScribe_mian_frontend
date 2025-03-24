@@ -16,8 +16,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import Link from "next/link"
 
 const formSchema = z.object({
-  email: z.string().email({
-    message: "Please enter a valid email address.",
+  username: z.string().min(1, {
+    message: "Please enter your username.",
   }),
 })
 
@@ -27,33 +27,33 @@ export default function VerifyEmail() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { toast } = useToast()
-  const emailParam = searchParams.get("email")
+  const usernameParam = searchParams.get("username")
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      email: emailParam || "",
+      username: usernameParam || "",
     },
   })
 
-  // Update form value if email param changes
+  // Update form value if username param changes
   useEffect(() => {
-    if (emailParam) {
-      form.setValue("email", emailParam)
+    if (usernameParam) {
+      form.setValue("username", usernameParam)
     }
-  }, [emailParam, form])
+  }, [usernameParam, form])
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsLoading(true)
     setIsSuccess(false)
 
     try {
-      const response = await fetch("http://127.0.0.1:8000/api/users/email-verify/", {
+      const response = await fetch("https://blogbackend-crimson-frog-3248.fly.dev/api/users/new-email-verify/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ email: values.email }),
+        body: JSON.stringify({ username: values.username }),
       })
 
       const data = await response.json()
@@ -65,9 +65,9 @@ export default function VerifyEmail() {
             description: data.detail,
             variant: "destructive",
           })
-        } else if (data.email && Array.isArray(data.email)) {
-          form.setError("email", {
-            message: data.email[0],
+        } else if (data.username && Array.isArray(data.username)) {
+          form.setError("username", {
+            message: data.username[0],
           })
         } else {
           toast({
@@ -82,7 +82,7 @@ export default function VerifyEmail() {
       setIsSuccess(true)
       toast({
         title: "Verification email sent",
-        description: "Please check your email for the verification link.",
+        description: data.message || "Please check your email for the verification link.",
       })
     } catch (error) {
       console.error("Email verification error:", error)
@@ -104,7 +104,7 @@ export default function VerifyEmail() {
             <CardTitle className="text-2xl font-bold bg-gradient-to-r from-primary to-blue-600 dark:from-blue-400 dark:to-blue-300 bg-clip-text text-transparent">
               Verify Your Email
             </CardTitle>
-            <CardDescription>Enter your email address to receive a verification link</CardDescription>
+            <CardDescription>Enter your username to receive a verification link</CardDescription>
           </CardHeader>
           <CardContent>
             {isSuccess ? (
@@ -119,13 +119,13 @@ export default function VerifyEmail() {
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                   <FormField
                     control={form.control}
-                    name="email"
+                    name="username"
                     render={({ field, fieldState }) => (
                       <FormItem>
                         <FormControl>
                           <FloatingLabelInput
-                            label="Email Address"
-                            type="email"
+                            label="Username"
+                            type="text"
                             error={fieldState.error?.message}
                             {...field}
                           />
