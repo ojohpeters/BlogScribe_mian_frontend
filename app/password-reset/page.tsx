@@ -39,7 +39,7 @@ export default function ResetPassword() {
     setIsSuccess(false)
 
     try {
-      const response = await fetch("http://127.0.0.1:8000/api/users/request-reset-email/", {
+      const response = await fetch("https://blogbackend-crimson-frog-3248.fly.dev/api/users/request-reset-email/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
