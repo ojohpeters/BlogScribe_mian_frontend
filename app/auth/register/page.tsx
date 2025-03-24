@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
 import { useToast } from "@/components/ui/use-toast"
 import { Checkbox } from "@/components/ui/checkbox"
+import { Eye, EyeOff } from "lucide-react"
 
 export default function Register() {
   const [username, setUsername] = useState("")
@@ -21,6 +22,8 @@ export default function Register() {
   const [agreedToTerms, setAgreedToTerms] = useState(false)
   const [errors, setErrors] = useState<Record<string, string[]>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+  const [showWpPassword, setShowWpPassword] = useState(false)
   const router = useRouter()
   const searchParams = useSearchParams()
   const { toast } = useToast()
@@ -82,6 +85,14 @@ export default function Register() {
     }
   }
 
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword)
+  }
+
+  const toggleWpPasswordVisibility = () => {
+    setShowWpPassword(!showWpPassword)
+  }
+
   return (
     <div className="flex min-h-screen items-center justify-center px-4 py-6 sm:px-6 lg:px-8">
       <Card className="w-full max-w-[450px] mx-auto">
@@ -121,15 +132,26 @@ export default function Register() {
                 {errors.email && <p className="text-sm text-destructive">{errors.email[0]}</p>}
               </div>
               <div className="space-y-2">
-                <Input
-                  id="password"
-                  placeholder="Password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  className="h-11"
-                />
+                <div className="relative">
+                  <Input
+                    id="password"
+                    placeholder="Password"
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    className="h-11 pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={togglePasswordVisibility}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground focus:outline-none"
+                    tabIndex={-1}
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
                 {errors.password && <p className="text-sm text-destructive">{errors.password[0]}</p>}
               </div>
               <div className="space-y-2">
@@ -146,15 +168,26 @@ export default function Register() {
                 )}
               </div>
               <div className="space-y-2">
-                <Input
-                  id="wordpress_password"
-                  placeholder="WordPress Application Password"
-                  type="password"
-                  value={wordpressPassword}
-                  onChange={(e) => setWordpressPassword(e.target.value)}
-                  required
-                  className="h-11"
-                />
+                <div className="relative">
+                  <Input
+                    id="wordpress_password"
+                    placeholder="WordPress Application Password"
+                    type={showWpPassword ? "text" : "password"}
+                    value={wordpressPassword}
+                    onChange={(e) => setWordpressPassword(e.target.value)}
+                    required
+                    className="h-11 pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={toggleWpPasswordVisibility}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground focus:outline-none"
+                    tabIndex={-1}
+                    aria-label={showWpPassword ? "Hide WordPress password" : "Show WordPress password"}
+                  >
+                    {showWpPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
                 {errors.wordpress_password && (
                   <p className="text-sm text-destructive">{errors.wordpress_password[0]}</p>
                 )}
@@ -190,11 +223,7 @@ export default function Register() {
           </form>
         </CardContent>
         <CardFooter className="flex flex-col space-y-4">
-          <Button 
-            className="w-full h-11 text-base" 
-            onClick={handleRegister} 
-            disabled={isSubmitting}
-          >
+          <Button className="w-full h-11 text-base" onClick={handleRegister} disabled={isSubmitting}>
             {isSubmitting ? "Registering..." : "Register"}
           </Button>
           <p className="text-sm text-center text-muted-foreground">

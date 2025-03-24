@@ -10,11 +10,10 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form"
 import { useToast } from "@/components/ui/use-toast"
-import { FloatingLabelInput } from "@/components/ui/floating-label-input"
 import { PageTransition } from "@/components/page-transition"
-import { Loader2, AlertCircle } from "lucide-react"
-import { useUser } from "@/lib/user-context"
+import { Loader2, AlertCircle, Eye, EyeOff } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { useUser } from "@/lib/user-context"
 
 const formSchema = z.object({
   username: z.string().min(3, {
@@ -30,6 +29,7 @@ export default function Login() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [emailNotVerified, setEmailNotVerified] = useState(false)
   const [userEmail, setUserEmail] = useState("")
+  const [showPassword, setShowPassword] = useState(false)
   const router = useRouter()
   const searchParams = useSearchParams()
   const { toast } = useToast()
@@ -131,6 +131,10 @@ export default function Login() {
     router.push(`/auth/verify-email${userEmail ? `?email=${encodeURIComponent(userEmail)}` : ""}`)
   }
 
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword)
+  }
+
   return (
     <PageTransition>
       <div className="container flex items-center justify-center min-h-[calc(100vh-4rem)] py-10">
@@ -165,7 +169,23 @@ export default function Login() {
                   render={({ field, fieldState }) => (
                     <FormItem>
                       <FormControl>
-                        <FloatingLabelInput label="Username" error={fieldState.error?.message} {...field} />
+                        <div className="relative">
+                          <input
+                            className={`peer h-14 w-full rounded-md border bg-background px-4 pt-4 pb-1.5 text-sm ring-offset-background
+                              placeholder-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2
+                              disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200
+                              ${fieldState.error ? "border-destructive" : "border-input"}`}
+                            placeholder=" "
+                            {...field}
+                          />
+                          <label
+                            className={`absolute left-4 top-4 z-10 origin-[0] transform text-sm duration-200 ease-out
+                              ${(field.value || field.value === "") && "-translate-y-2 scale-75 text-xs"}
+                              ${fieldState.error ? "text-destructive" : "text-muted-foreground"}`}
+                          >
+                            Username
+                          </label>
+                        </div>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -177,12 +197,33 @@ export default function Login() {
                   render={({ field, fieldState }) => (
                     <FormItem>
                       <FormControl>
-                        <FloatingLabelInput
-                          label="Password"
-                          type="password"
-                          error={fieldState.error?.message}
-                          {...field}
-                        />
+                        <div className="relative">
+                          <input
+                            type={showPassword ? "text" : "password"}
+                            className={`peer h-14 w-full rounded-md border bg-background px-4 pt-4 pb-1.5 text-sm ring-offset-background
+                              placeholder-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2
+                              disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200 pr-10
+                              ${fieldState.error ? "border-destructive" : "border-input"}`}
+                            placeholder=" "
+                            {...field}
+                          />
+                          <button
+                            type="button"
+                            onClick={togglePasswordVisibility}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground focus:outline-none focus:ring-0"
+                            tabIndex={-1}
+                            aria-label={showPassword ? "Hide password" : "Show password"}
+                          >
+                            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          </button>
+                          <label
+                            className={`absolute left-4 top-4 z-10 origin-[0] transform text-sm duration-200 ease-out
+                              ${(field.value || field.value === "") && "-translate-y-2 scale-75 text-xs"}
+                              ${fieldState.error ? "text-destructive" : "text-muted-foreground"}`}
+                          >
+                            Password
+                          </label>
+                        </div>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
