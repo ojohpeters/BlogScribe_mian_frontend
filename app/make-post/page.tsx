@@ -103,6 +103,26 @@ export default function MakePost() {
         )
 
         if (!response.ok) {
+          // Check for daily limit error (401 with specific error message)
+          if (response.status === 401) {
+            try {
+              const errorData = await response.json()
+              if (errorData.error === "Your daily request limit is reached") {
+                toast({
+                  title: "Daily limit reached",
+                  description:
+                    "You've reached your daily request limit. Please try again tomorrow or upgrade your plan.",
+                  variant: "destructive",
+                })
+                return
+              }
+            } catch (e) {
+              // If parsing fails, continue with other error handling
+              console.error("Error parsing response:", e)
+            }
+          }
+
+          // Check for subscription-related errors
           if (response.status === 403) {
             const errorData = await response.json()
             if (errorData.detail && errorData.detail.includes("subscription")) {
@@ -169,6 +189,25 @@ export default function MakePost() {
         )
 
         if (!response.ok) {
+          // Check for daily limit error (401 with specific error message)
+          if (response.status === 401) {
+            try {
+              const errorData = await response.json()
+              if (errorData.error === "Your daily request limit is reached") {
+                toast({
+                  title: "Daily limit reached",
+                  description:
+                    "You've reached your daily request limit. Please try again tomorrow or upgrade your plan.",
+                  variant: "destructive",
+                })
+                return
+              }
+            } catch (e) {
+              // If parsing fails, continue with other error handling
+              console.error("Error parsing response:", e)
+            }
+          }
+
           if (response.status === 403) {
             const errorData = await response.json()
             if (errorData.detail && errorData.detail.includes("subscription")) {
@@ -200,11 +239,9 @@ export default function MakePost() {
           if (data.error === "Your daily request limit is reached") {
             toast({
               title: "Daily limit reached",
-              description:
-                "You've reached your daily request limit. Upgrade to a higher plan for more requests or try again tomorrow.",
+              description: "You've reached your daily request limit. Please try again tomorrow or upgrade your plan.",
               variant: "destructive",
             })
-            router.push("/pricing")
             return
           }
 
@@ -216,7 +253,17 @@ export default function MakePost() {
           return
         }
 
+        // Store the paraphrased content in localStorage
         localStorage.setItem("paraphrasedContent", JSON.stringify(data))
+
+        // Show a toast to indicate successful paraphrasing
+        toast({
+          title: "Paraphrasing complete",
+          description: "Redirecting to the paraphrase editor...",
+        })
+
+        // Navigate to the paraphrase page
+        // We'll keep the loading state active until after navigation
         router.push("/paraphrase")
       })
     } catch (error) {
@@ -228,7 +275,10 @@ export default function MakePost() {
         })
       }
     } finally {
-      setIsParaphrasing(false)
+      // We'll delay turning off the loading state to ensure it stays visible during navigation
+      setTimeout(() => {
+        setIsParaphrasing(false)
+      }, 1500) // Add a delay to ensure loading state remains during navigation
     }
   }
 
@@ -327,7 +377,7 @@ export default function MakePost() {
                         {isParaphrasing ? (
                           <>
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Paraphrasing...
+                            Processing...
                           </>
                         ) : (
                           "Paraphrase"

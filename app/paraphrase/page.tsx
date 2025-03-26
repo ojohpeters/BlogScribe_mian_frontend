@@ -23,6 +23,9 @@ import {
 } from "@/components/ui/dialog"
 import { Checkbox } from "@/components/ui/checkbox"
 
+// Add a new import for the marked library at the top of the file
+import { marked } from "marked"
+
 // Import the full-featured markdown editor
 const MDEditor = dynamic(() => import("@uiw/react-md-editor"), {
   ssr: false,
@@ -341,9 +344,8 @@ export default function Paraphrase() {
           },
           body: JSON.stringify({
             content,
-            word_length: wordLength[0],
+            lenght: wordLength[0],
             keyword,
-            url: originalUrl,
             title: originalTitle,
           }),
         },
@@ -457,6 +459,9 @@ export default function Paraphrase() {
     })
   }
 
+  // Update the handlePublish function to convert Markdown to HTML before sending to WordPress
+  // Find the handlePublish function and replace it with this updated version:
+
   // Update the handlePublish function to use FormData
   const handlePublish = async () => {
     if (!publishSettings.title.trim()) {
@@ -485,8 +490,12 @@ export default function Paraphrase() {
       const contentLines = content.split("\n")
       const bodyContent = contentLines.slice(2).join("\n").trim()
 
-      formData.append("title", publishSettings.title)
-      formData.append("content", bodyContent)
+      // Convert Markdown to HTML for WordPress
+      const htmlContent = marked(bodyContent)
+      const htmlTitle = marked(publishSettings.title).replace(/<\/?p>/g, "") // Remove paragraph tags from title
+
+      formData.append("title", htmlTitle) // Send HTML title instead of Markdown
+      formData.append("content", htmlContent) // Send HTML instead of Markdown
       formData.append("status", publishSettings.status)
 
       // Add categories

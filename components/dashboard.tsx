@@ -73,6 +73,7 @@ export function Dashboard() {
   const [keyword, setKeyword] = useState("")
   const { toast } = useToast()
   const router = useRouter()
+  const [isSyncing, setIsSyncing] = useState(false)
 
   useEffect(() => {
     loadData()
@@ -89,30 +90,35 @@ export function Dashboard() {
     setSeoScore(newSeoScore)
   }, [content, title, keyword])
 
-  const loadData = () => {
-    const savedSettings = localStorage.getItem("encryptedBlogSettings")
-    if (savedSettings) {
-      setEncryptedSettings(savedSettings)
-    } else {
-      setError("No saved settings found. Please update your WordPress details in the settings.")
-    }
-
-    const blogInfo = localStorage.getItem("blogInfo")
-    if (blogInfo) {
-      try {
-        const parsedInfo = JSON.parse(blogInfo)
-        if (parsedInfo.categories) {
-          setCategories(Object.entries(parsedInfo.categories).map(([id, name]) => ({ id, name: name as string })))
-        }
-        if (parsedInfo.tags) {
-          setTags(Object.entries(parsedInfo.tags).map(([id, name]) => ({ id, name: name as string })))
-        }
-      } catch (error) {
-        console.error("Error parsing blog info:", error)
-        setError("Failed to load blog information. Please check your settings and try again.")
+  const loadData = async () => {
+    setIsSyncing(true)
+    try {
+      const savedSettings = localStorage.getItem("encryptedBlogSettings")
+      if (savedSettings) {
+        setEncryptedSettings(savedSettings)
+      } else {
+        setError("No saved settings found. Please update your WordPress details in the settings.")
       }
-    } else {
-      setError("No blog information found. Please update your WordPress details in the settings.")
+
+      const blogInfo = localStorage.getItem("blogInfo")
+      if (blogInfo) {
+        try {
+          const parsedInfo = JSON.parse(blogInfo)
+          if (parsedInfo.categories) {
+            setCategories(Object.entries(parsedInfo.categories).map(([id, name]) => ({ id, name: name as string })))
+          }
+          if (parsedInfo.tags) {
+            setTags(Object.entries(parsedInfo.tags).map(([id, name]) => ({ id, name: name as string })))
+          }
+        } catch (error) {
+          console.error("Error parsing blog info:", error)
+          setError("Failed to load blog information. Please check your settings and try again.")
+        }
+      } else {
+        setError("No blog information found. Please update your WordPress details in the settings.")
+      }
+    } finally {
+      setIsSyncing(false)
     }
   }
 
@@ -210,7 +216,38 @@ export function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold mb-6">Create New Post</h1>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold">Create New Post</h1>
+        <Button variant="outline" onClick={loadData} disabled={isSyncing} className="flex items-center gap-2">
+          {isSyncing ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Syncing...
+            </>
+          ) : (
+            <>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="h-4 w-4"
+              >
+                <path d="M21 2v6h-6"></path>
+                <path d="M3 12a9 9 0 0 1 15-6.7L21 8"></path>
+                <path d="M3 22v-6h6"></path>
+                <path d="M21 12a9 9 0 0 1-15 6.7L3 16"></path>
+              </svg>
+              Sync
+            </>
+          )}
+        </Button>
+      </div>
       {error && (
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />

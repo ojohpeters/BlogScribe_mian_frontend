@@ -86,7 +86,7 @@ export default function Subscription() {
   }
 
   const handleRenewSubscription = () => {
-    router.push("/payment")
+    router.push("/pricing")
   }
 
   const handleLogout = () => {
@@ -430,10 +430,7 @@ export default function Subscription() {
           )}
 
           <div className="flex justify-center mt-6">
-            <Button 
-              onClick={() => router.push("/pricing")}
-              className="bg-primary hover:bg-primary/90"
-            >
+            <Button onClick={() => router.push("/pricing")} className="bg-primary hover:bg-primary/90">
               Upgrade Plan
             </Button>
           </div>

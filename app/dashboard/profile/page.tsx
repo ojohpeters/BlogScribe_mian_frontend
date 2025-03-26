@@ -62,7 +62,7 @@ export default function Profile() {
     setIsSaving(true)
     try {
       const response = await fetchWithAuth(
-        "https://blogbackend-crimson-frog-3248.fly.dev/api/users/update/",
+        "https://blogbackend-crimson-frog-3248.fly.dev/api/users/profile/",
         {
           method: "PUT",
           headers: {
