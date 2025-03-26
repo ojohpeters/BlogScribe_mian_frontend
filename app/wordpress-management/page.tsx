@@ -17,25 +17,6 @@ interface TagMap {
   [key: string]: string
 }
 
-// Remove this dummy data
-// const dummyPosts = [
-//   {
-//     id: 1,
-//     title: "10 Tips for Better WordPress Performance",
-//     url: "https://example.com/post1",
-//   },
-//   {
-//     id: 2,
-//     title: "How to Secure Your WordPress Site",
-//     url: "https://example.com/post2",
-//   },
-//   {
-//     id: 3,
-//     title: "Essential WordPress Plugins for 2024",
-//     url: "https://example.com/post3",
-//   },
-// ];
-
 // Add this interface for posts
 interface Post {
   id: number
@@ -114,14 +95,17 @@ export default function WordPressManagement() {
     }
 
     fetchCategoriesAndTags()
-    fetchPosts() // Add this line
+    fetchPosts()
   }, [router, toast])
 
   const fetchCategoriesAndTags = async () => {
     setIsLoading(true)
     try {
       // Fetch categories
-      const categoriesResponse = await fetchWithAuth("https://blogbackend-crimson-frog-3248.fly.dev/api/get-categories/", {})
+      const categoriesResponse = await fetchWithAuth(
+        "https://blogbackend-crimson-frog-3248.fly.dev/api/get-categories/",
+        {},
+      )
       console.log("Categories response status:", categoriesResponse.status)
       const categoriesData = await categoriesResponse.json()
       console.log("Categories response data:", categoriesData)
@@ -282,15 +266,17 @@ export default function WordPressManagement() {
                   {posts.map((post) => (
                     <div
                       key={post.id}
-                      className="flex items-center justify-between p-4 border rounded-lg hover:bg-secondary/50"
+                      className="flex flex-col sm:flex-row items-start sm:items-center gap-3 p-4 border rounded-lg hover:bg-secondary/50"
                     >
-                      <span className="flex-grow truncate mr-4">{post.title}</span>
-                      <div className="flex gap-2 shrink-0">
+                      <span className="flex-grow truncate w-full sm:w-auto">{post.title}</span>
+                      <div className="flex gap-2 w-full sm:w-auto justify-end">
                         <Button size="sm" variant="outline" onClick={() => copyToClipboard(post.url)}>
-                          <Copy className="h-4 w-4" />
+                          <Copy className="h-4 w-4 mr-2" />
+                          <span className="sm:hidden">Copy</span>
                         </Button>
                         <Button size="sm" variant="outline" onClick={() => window.open(post.url, "_blank")}>
-                          <Eye className="h-4 w-4" />
+                          <Eye className="h-4 w-4 mr-2" />
+                          <span className="sm:hidden">View</span>
                         </Button>
                       </div>
                     </div>
