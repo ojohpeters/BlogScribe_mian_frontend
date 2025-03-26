@@ -33,7 +33,7 @@ export default function RootLayout({
               <SubscriptionProvider>
                 <div className="relative min-h-screen flex flex-col bg-gradient-to-b from-gray-50 to-white dark:from-gray-950 dark:to-gray-900">
                   <DesktopNav />
-                  <main className="flex-grow container mx-auto px-4 sm:px-6 py-6 md:py-10 pt-[60px]">
+                  <main className="flex-grow container mx-auto px-4 sm:px-6 py-6 md:py-10 pt-[60px] pb-16">
                     {/* SubscriptionBanner will only show for authenticated users with expired subscriptions */}
                     <SubscriptionBanner />
                     {children}
