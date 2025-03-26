@@ -356,7 +356,7 @@ export default function Dashboard() {
           <CardHeader className="pb-2 relative z-10">
             <CardTitle className="text-lg flex items-center">
               <FileText className="h-5 w-5 mr-2 text-primary" />
-              Total Posts
+              Total Fetched Posts
             </CardTitle>
           </CardHeader>
           <CardContent className="relative z-10">
@@ -367,7 +367,7 @@ export default function Dashboard() {
             ) : (
               <div className="text-center">
                 <p className="text-3xl font-bold">{stats?.total_posts || 0}</p>
-                <p className="text-sm text-muted-foreground mt-1">WordPress posts</p>
+                <p className="text-sm text-muted-foreground mt-1">Fetched Blogposts</p>
               </div>
             )}
           </CardContent>
