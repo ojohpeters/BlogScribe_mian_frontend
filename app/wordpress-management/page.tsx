@@ -262,14 +262,14 @@ export default function WordPressManagement() {
                   No posts found. Click the refresh button to fetch posts.
                 </div>
               ) : (
-                <div className="grid gap-4">
+                <div className="grid gap-4 w-full overflow-hidden">
                   {posts.map((post) => (
                     <div
                       key={post.id}
                       className="flex flex-col sm:flex-row items-start sm:items-center gap-3 p-4 border rounded-lg hover:bg-secondary/50"
                     >
-                      <span className="flex-grow truncate w-full sm:w-auto">{post.title}</span>
-                      <div className="flex gap-2 w-full sm:w-auto justify-end">
+                      <span className="flex-grow truncate max-w-full break-words">{post.title}</span>
+                      <div className="flex gap-2 w-full sm:w-auto justify-end mt-2 sm:mt-0">
                         <Button size="sm" variant="outline" onClick={() => copyToClipboard(post.url)}>
                           <Copy className="h-4 w-4 mr-2" />
                           <span className="sm:hidden">Copy</span>
