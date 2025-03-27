@@ -16,13 +16,13 @@ import { motion } from "framer-motion"
 
 // Define form validation schema
 const formSchema = z.object({
-  title: z
+  subject: z
     .string()
     .min(3, {
-      message: "Title must be at least 3 characters.",
+      message: "Subject must be at least 3 characters.",
     })
     .max(100, {
-      message: "Title must not exceed 100 characters.",
+      message: "Subject must not exceed 100 characters.",
     }),
   message: z
     .string()
@@ -55,7 +55,7 @@ export default function ContactPage() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      title: "",
+      subject: "",
       message: "",
       email: "",
       name: "",
@@ -67,13 +67,26 @@ export default function ContactPage() {
     setIsSubmitting(true)
 
     try {
-      const response = await fetch("https://blogbackend-crimson-frog-3248.fly.dev/api/contact", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(values),
-      })
+      // First try the local API endpoint
+      let response
+      try {
+        response = await fetch("/api/contact/", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(values),
+        })
+      } catch (error) {
+        // If local endpoint fails, try the remote endpoint
+        response = await fetch("https://blogbackend-crimson-frog-3248.fly.dev/api/contact/", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(values),
+        })
+      }
 
       if (!response.ok) {
         throw new Error("Failed to submit contact form")
@@ -168,7 +181,7 @@ export default function ContactPage() {
 
                   <FormField
                     control={form.control}
-                    name="title"
+                    name="subject"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Subject</FormLabel>
