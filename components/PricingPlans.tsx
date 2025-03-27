@@ -86,7 +86,7 @@ export default function PricingPlans({ showFeaturedOnly = true }: PricingPlansPr
     }
   }
 
-  // Updated handleSubscribe function with enhanced user feedback
+  // Update the handleSubscribe function to use the correct URL format
   const handleSubscribe = async (planId: number, planName: string) => {
     // Check if user is logged in by looking for auth token
     const token = localStorage.getItem("authToken")
@@ -97,73 +97,12 @@ export default function PricingPlans({ showFeaturedOnly = true }: PricingPlansPr
         title: "Authentication required",
         description: "Please log in to subscribe to a plan.",
       })
-      router.push(`/auth/login?returnUrl=${encodeURIComponent(`/pricing?plan_id=${planId}`)}`)
+      router.push(`/auth/login?returnUrl=${encodeURIComponent(`/payment?plan_id=${planId}`)}`)
       return
     }
 
-    // Show loading state for this specific plan
-    setLoadingPlanId(planId)
-
-    // Show initial toast to inform user
-    toast({
-      title: "Processing payment",
-      description: `Preparing your ${planName} subscription. Please wait...`,
-    })
-
-    try {
-      // Make API call to initiate Paystack payment
-      const response = await fetch("https://blogbackend-crimson-frog-3248.fly.dev/api/subscription/paystack/initiate/", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ plan_id: planId }),
-      })
-
-      // Check if response is JSON before trying to parse it
-      const contentType = response.headers.get("content-type")
-      let data
-
-      if (contentType && contentType.includes("application/json")) {
-        data = await response.json()
-      } else {
-        // Log the raw response for debugging
-        const responseText = await response.text()
-        console.error("Non-JSON response received:", responseText)
-        throw new Error("Invalid response format from server")
-      }
-
-      if (!response.ok) {
-        throw new Error(data?.message || "Failed to initiate payment")
-      }
-
-      if (data?.payment_url) {
-        // Show success toast before redirecting
-        toast({
-          title: "Payment Initiated",
-          description: "You'll be redirected to complete your payment. Please don't close your browser.",
-          variant: "default",
-        })
-
-        // Short delay to ensure toast is visible before redirect
-        setTimeout(() => {
-          // Redirect user to Paystack payment page
-          window.location.href = data.payment_url
-        }, 1500)
-      } else {
-        throw new Error("No payment URL received from server")
-      }
-    } catch (error) {
-      console.error("Payment initiation error:", error)
-      toast({
-        title: "Payment Error",
-        description: error instanceof Error ? error.message : "Failed to initiate payment. Please try again.",
-        variant: "destructive",
-      })
-      // Reset loading state on error
-      setLoadingPlanId(null)
-    }
+    // Redirect to payment page with plan ID
+    router.push(`/payment?plan_id=${planId}`)
   }
 
   if (isLoading) {

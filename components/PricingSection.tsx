@@ -64,7 +64,7 @@ export default function PricingSection() {
     }
   }
 
-  // Replace the handleSubscribe function with this version that checks authentication
+  // Update the handleSubscribe function to use the correct URL format
   const handleSubscribe = (planId: number) => {
     // Check if user is logged in by looking for auth token
     const token = localStorage.getItem("authToken")

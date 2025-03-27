@@ -8,7 +8,6 @@ import { useToast } from "@/components/ui/use-toast"
 import { Loader2, CheckCircle, CreditCard, Calendar, Shield, ArrowRight } from "lucide-react"
 import { motion } from "framer-motion"
 import { Badge } from "@/components/ui/badge"
-import { fetchWithAuth } from "@/lib/utils"
 
 interface SubscriptionPlan {
   id: number
@@ -16,6 +15,10 @@ interface SubscriptionPlan {
   price: string
   daily_limit: number
   duration: number
+  description?: {
+    title: string
+    details: string[]
+  }
 }
 
 export default function Payment() {
@@ -45,7 +48,15 @@ export default function Payment() {
       if (!planId) {
         // If no plan_id is provided, fetch all plans and select the first one
         try {
-          const response = await fetchWithAuth("http://127.0.0.1:8000/api/subscription/plans", {}, router, toast)
+          const response = await fetch("https://blogbackend-crimson-frog-3248.fly.dev/api/subscription/plans/", {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          })
+
+          if (!response.ok) {
+            throw new Error(`API request failed with status ${response.status}`)
+          }
 
           const plans = await response.json()
           if (plans && plans.length > 0) {
@@ -53,37 +64,41 @@ export default function Payment() {
           }
         } catch (error) {
           console.error("Error fetching plans:", error)
-          if (!(error instanceof Error && error.message === "Session expired")) {
-            toast({
-              title: "Error",
-              description: "Failed to load subscription plan details.",
-              variant: "destructive",
-            })
-          }
+          toast({
+            title: "Error",
+            description: "Failed to load subscription plan details.",
+            variant: "destructive",
+          })
         } finally {
           setIsLoading(false)
         }
       } else {
         // If plan_id is provided, fetch that specific plan
         try {
-          const response = await fetchWithAuth(
-            `http://127.0.0.1:8000/api/subscription/plans${planId ? `/${planId}` : ""}`,
-            {},
-            router,
-            toast,
-          )
+          const response = await fetch(`https://blogbackend-crimson-frog-3248.fly.dev/api/subscription/plan/${planId}/`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          })
+
+          if (!response.ok) {
+            throw new Error(`API request failed with status ${response.status}`)
+          }
 
           const plan = await response.json()
+
+          if (plan.error) {
+            throw new Error(plan.error)
+          }
+
           setSelectedPlan(plan)
         } catch (error) {
           console.error("Error fetching plan details:", error)
-          if (!(error instanceof Error && error.message === "Session expired")) {
-            toast({
-              title: "Error",
-              description: "Failed to load subscription plan details.",
-              variant: "destructive",
-            })
-          }
+          toast({
+            title: "Error",
+            description: "Failed to load subscription plan details.",
+            variant: "destructive",
+          })
         } finally {
           setIsLoading(false)
         }
@@ -93,101 +108,25 @@ export default function Payment() {
     fetchPlanDetails()
   }, [planId, toast, router])
 
-  // Add WebSocket connection for payment verification
-  useEffect(() => {
-    // Only initialize WebSocket if user is authenticated
-    const token = localStorage.getItem("authToken")
-    if (!token) return
-
-    // Create WebSocket connection
-    const socket = new WebSocket("wss://blogbackend-crimson-frog-3248.fly.dev/ws/payments/")
-
-    // Connection opened
-    socket.onopen = () => {
-      console.log("WebSocket connection established for payment verification")
-      // Send authentication token to identify the user
-      socket.send(JSON.stringify({ token }))
-    }
-
-    // Listen for messages
-    socket.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data)
-        console.log("Payment WebSocket message received:", data)
-
-        if (data.status === "success") {
-          toast({
-            title: "Payment Successful!",
-            description: "Your subscription has been activated.",
-            variant: "default",
-          })
-
-          // Update local subscription status
-          try {
-            const userDataStr = localStorage.getItem("userData")
-            const userData = userDataStr ? JSON.parse(userDataStr) : {}
-            localStorage.setItem(
-              "userData",
-              JSON.stringify({
-                ...userData,
-                has_active_subscription: true,
-              }),
-            )
-          } catch (storageError) {
-            console.error("Error updating user data in localStorage:", storageError)
-          }
-
-          // Redirect to dashboard or payment success page
-          router.push("/payment-success")
-        } else if (data.status === "failed") {
-          toast({
-            title: "Payment Failed",
-            description: data.message || "There was an issue processing your payment.",
-            variant: "destructive",
-          })
-        }
-      } catch (error) {
-        console.error("Error parsing WebSocket message:", error)
-      }
-    }
-
-    // Connection error
-    socket.onerror = (error) => {
-      console.error("WebSocket error:", error)
-    }
-
-    // Connection closed
-    socket.onclose = (event) => {
-      console.log("WebSocket connection closed:", event.code, event.reason)
-    }
-
-    // Clean up WebSocket connection when component unmounts
-    return () => {
-      if (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING) {
-        console.log("Closing WebSocket connection")
-        socket.close()
-      }
-    }
-  }, [router, toast])
-
   const handleSubscribe = async () => {
     if (!selectedPlan) return
 
     setIsProcessing(true)
     try {
+      const token = localStorage.getItem("authToken")
       // Send a POST request to get the payment URL
-      const response = await fetchWithAuth(
-        "http://127.0.0.1:8000/api/subscription/subscribe",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ plan_id: selectedPlan.id }),
+      const response = await fetch("https://blogbackend-crimson-frog-3248.fly.dev/api/subscription/subscribe/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
-        router,
-        toast,
-      )
+        body: JSON.stringify({ plan_id: selectedPlan.id }),
+      })
+
+      if (!response.ok) {
+        throw new Error(`API request failed with status ${response.status}`)
+      }
 
       const data = await response.json()
 
@@ -205,13 +144,11 @@ export default function Payment() {
       }
     } catch (error) {
       console.error("Error processing subscription:", error)
-      if (!(error instanceof Error && error.message === "Session expired")) {
-        toast({
-          title: "Subscription failed",
-          description: "An error occurred while processing your subscription. Please try again.",
-          variant: "destructive",
-        })
-      }
+      toast({
+        title: "Subscription failed",
+        description: "An error occurred while processing your subscription. Please try again.",
+        variant: "destructive",
+      })
     } finally {
       setIsProcessing(false)
     }
@@ -272,7 +209,9 @@ export default function Payment() {
               <div className="flex items-center justify-between">
                 <div>
                   <CardTitle className="text-2xl">{selectedPlan.name} Plan</CardTitle>
-                  <CardDescription>Review your subscription details</CardDescription>
+                  <CardDescription>
+                    {selectedPlan.description?.title || "Review your subscription details"}
+                  </CardDescription>
                 </div>
                 <Badge variant="outline" className="bg-primary/10 text-primary">
                   {formatCurrency(selectedPlan.price)}/month
@@ -283,55 +222,60 @@ export default function Payment() {
               <div className="space-y-4">
                 <h3 className="text-sm font-medium text-muted-foreground">Plan Features</h3>
                 <ul className="space-y-3">
-                  <motion.li
-                    className="flex items-start"
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.1 }}
-                  >
-                    <CheckCircle className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                    <div>
-                      <span className="font-medium">{selectedPlan.daily_limit} requests per day</span>
-                      <p className="text-sm text-muted-foreground">Make the most of our AI-powered tools</p>
-                    </div>
-                  </motion.li>
-                  <motion.li
-                    className="flex items-start"
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.2 }}
-                  >
-                    <CheckCircle className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                    <div>
-                      <span className="font-medium">{selectedPlan.duration} days of access</span>
-                      <p className="text-sm text-muted-foreground">Full access to all premium features</p>
-                    </div>
-                  </motion.li>
-                  <motion.li
-                    className="flex items-start"
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.3 }}
-                  >
-                    <CheckCircle className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                    <div>
-                      <span className="font-medium">AI-powered paraphrasing</span>
-                      <p className="text-sm text-muted-foreground">Create unique content effortlessly</p>
-                    </div>
-                  </motion.li>
-                  {selectedPlan.name !== "Basic" && (
-                    <motion.li
-                      className="flex items-start"
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.4 }}
-                    >
-                      <CheckCircle className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                      <div>
-                        <span className="font-medium">Priority support</span>
-                        <p className="text-sm text-muted-foreground">Get help when you need it most</p>
-                      </div>
-                    </motion.li>
+                  {selectedPlan.description?.details ? (
+                    selectedPlan.description.details.map((detail, index) => (
+                      <motion.li
+                        key={index}
+                        className="flex items-start"
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.1 * index }}
+                      >
+                        <CheckCircle className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                        <div>
+                          <span className="font-medium">{detail}</span>
+                        </div>
+                      </motion.li>
+                    ))
+                  ) : (
+                    <>
+                      <motion.li
+                        className="flex items-start"
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.1 }}
+                      >
+                        <CheckCircle className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                        <div>
+                          <span className="font-medium">{selectedPlan.daily_limit} requests per day</span>
+                          <p className="text-sm text-muted-foreground">Make the most of our AI-powered tools</p>
+                        </div>
+                      </motion.li>
+                      <motion.li
+                        className="flex items-start"
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.2 }}
+                      >
+                        <CheckCircle className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                        <div>
+                          <span className="font-medium">{selectedPlan.duration} days of access</span>
+                          <p className="text-sm text-muted-foreground">Full access to all premium features</p>
+                        </div>
+                      </motion.li>
+                      <motion.li
+                        className="flex items-start"
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.3 }}
+                      >
+                        <CheckCircle className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                        <div>
+                          <span className="font-medium">AI-powered paraphrasing</span>
+                          <p className="text-sm text-muted-foreground">Create unique content effortlessly</p>
+                        </div>
+                      </motion.li>
+                    </>
                   )}
                 </ul>
               </div>
