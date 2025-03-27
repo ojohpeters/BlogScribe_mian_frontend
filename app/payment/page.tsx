@@ -48,7 +48,7 @@ export default function Payment() {
       if (!planId) {
         // If no plan_id is provided, fetch all plans and select the first one
         try {
-          const response = await fetch("https://blogbackend-crimson-frog-3248.fly.dev/api/subscription/plans/", {
+          const response = await fetch("http://127.0.0.1:8000/api/subscription/plans/", {
             headers: {
               Authorization: `Bearer ${token}`,
             },
@@ -75,7 +75,7 @@ export default function Payment() {
       } else {
         // If plan_id is provided, fetch that specific plan
         try {
-          const response = await fetch(`https://blogbackend-crimson-frog-3248.fly.dev/api/subscription/plan/${planId}/`, {
+          const response = await fetch(`http://127.0.0.1:8000/api/subscription/plan/${planId}/`, {
             headers: {
               Authorization: `Bearer ${token}`,
             },
@@ -114,8 +114,9 @@ export default function Payment() {
     setIsProcessing(true)
     try {
       const token = localStorage.getItem("authToken")
-      // Send a POST request to get the payment URL
-      const response = await fetch("https://blogbackend-crimson-frog-3248.fly.dev/api/subscription/subscribe/", {
+
+      // Send a POST request to initiate Paystack payment
+      const response = await fetch("http://127.0.0.1:8000/api/subscription/paystack/initiate/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -125,28 +126,37 @@ export default function Payment() {
       })
 
       if (!response.ok) {
-        throw new Error(`API request failed with status ${response.status}`)
+        const errorData = await response.json()
+        throw new Error(errorData.detail || `API request failed with status ${response.status}`)
       }
 
       const data = await response.json()
 
       // Check if the API returned a payment URL
       if (data.payment_url) {
-        // Redirect the user to the payment gateway
-        window.location.href = data.payment_url
-      } else {
-        // If no payment URL is returned, assume subscription was successful
+        // Show success toast before redirecting
         toast({
-          title: "Subscription successful",
-          description: `Your subscription to the ${selectedPlan.name} plan has been activated.`,
+          title: "Payment Initiated",
+          description: "You'll be redirected to complete your payment. Please don't close your browser.",
+          variant: "default",
         })
-        router.push("/dashboard")
+
+        // Short delay to ensure toast is visible before redirect
+        setTimeout(() => {
+          // Redirect the user to the Paystack payment page
+          window.location.href = data.payment_url
+        }, 1500)
+      } else {
+        throw new Error("No payment URL received from server")
       }
     } catch (error) {
       console.error("Error processing subscription:", error)
       toast({
         title: "Subscription failed",
-        description: "An error occurred while processing your subscription. Please try again.",
+        description:
+          error instanceof Error
+            ? error.message
+            : "An error occurred while processing your subscription. Please try again.",
         variant: "destructive",
       })
     } finally {

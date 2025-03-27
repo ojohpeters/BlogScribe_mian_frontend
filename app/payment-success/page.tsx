@@ -19,6 +19,7 @@ export default function PaymentSuccessPage() {
 
   useEffect(() => {
     const reference = searchParams.get("reference")
+    let timeoutId: NodeJS.Timeout
 
     if (!reference) {
       setVerificationStatus("error")
@@ -41,6 +42,11 @@ export default function PaymentSuccessPage() {
         try {
           const data = JSON.parse(event.data)
           console.log("Payment WebSocket message received:", data)
+
+          // Clear the timeout since we received a response
+          if (timeoutId) {
+            clearTimeout(timeoutId)
+          }
 
           if (data.status === "success") {
             setVerificationStatus("success")
@@ -83,107 +89,44 @@ export default function PaymentSuccessPage() {
 
       socket.onerror = (error) => {
         console.error("WebSocket error:", error)
+        setVerificationStatus("error")
+        setMessage("Connection error. Please try again or contact support.")
       }
 
       socket.onclose = (event) => {
         console.log("WebSocket connection closed:", event.code, event.reason)
       }
 
-      // Clean up WebSocket connection when component unmounts
+      // Set a timeout to handle cases where the user might have canceled the payment
+      timeoutId = setTimeout(() => {
+        if (verificationStatus === "loading") {
+          setVerificationStatus("error")
+          setMessage(
+            "We haven't received confirmation of your payment. If you completed the payment, please wait a moment. If you canceled or encountered an issue, you can try again.",
+          )
+
+          toast({
+            title: "Payment Verification Timeout",
+            description:
+              "Did you cancel the payment? You can try again or contact support if you believe this is an error.",
+            variant: "destructive",
+          })
+        }
+      }, 60000) // 1-minute timeout
+
+      // Clean up WebSocket connection and timeout when component unmounts
       return () => {
+        if (timeoutId) {
+          clearTimeout(timeoutId)
+        }
+
         if (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING) {
           console.log("Closing WebSocket connection")
           socket.close()
         }
       }
     }
-
-    // Also keep the existing HTTP verification as a fallback
-    const verifyPayment = async () => {
-      try {
-        // Get auth token from localStorage
-        const token = localStorage.getItem("authToken")
-
-        if (!token) {
-          setVerificationStatus("error")
-          setMessage("Authentication required. Please log in to verify your payment.")
-          return
-        }
-
-        const response = await fetch("https://blogbackend-crimson-frog-3248.fly.dev/api/paystack/verify/", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ reference }),
-        })
-
-        // Check if response is JSON before trying to parse it
-        const contentType = response.headers.get("content-type")
-        let data
-
-        if (contentType && contentType.includes("application/json")) {
-          data = await response.json()
-        } else {
-          // Handle non-JSON response
-          console.error("Non-JSON response received:", await response.text())
-          throw new Error("Invalid response format from server")
-        }
-
-        if (response.ok) {
-          setVerificationStatus("success")
-          setMessage(data?.message || "Payment verified successfully! Your subscription is now active.")
-
-          // Update local storage to reflect subscription status
-          try {
-            const userDataStr = localStorage.getItem("userData")
-            const userData = userDataStr ? JSON.parse(userDataStr) : {}
-            localStorage.setItem(
-              "userData",
-              JSON.stringify({
-                ...userData,
-                has_active_subscription: true,
-              }),
-            )
-          } catch (storageError) {
-            console.error("Error updating user data in localStorage:", storageError)
-            // Continue even if localStorage update fails
-          }
-
-          // Show success toast
-          toast({
-            title: "Payment Successful",
-            description: "Your subscription has been activated successfully.",
-            variant: "default",
-          })
-        } else {
-          setVerificationStatus("error")
-          setMessage(data?.detail || data?.message || "Payment verification failed. Please contact support.")
-
-          // Show error toast
-          toast({
-            title: "Verification Failed",
-            description: data?.detail || data?.message || "There was an issue verifying your payment.",
-            variant: "destructive",
-          })
-        }
-      } catch (error) {
-        console.error("Payment verification error:", error)
-        setVerificationStatus("error")
-        setMessage("An error occurred while verifying your payment. Please try again or contact support.")
-
-        // Show error toast
-        toast({
-          title: "Verification Error",
-          description: "Connection error. Please check your internet connection and try again.",
-          variant: "destructive",
-        })
-      }
-    }
-
-    verifyPayment()
-  }, [searchParams, toast])
+  }, [searchParams, toast, verificationStatus])
 
   return (
     <div className="container flex items-center justify-center min-h-screen py-12">
