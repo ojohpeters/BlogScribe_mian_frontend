@@ -30,7 +30,7 @@ export default function PaymentSuccessPage() {
     // Set up WebSocket connection for real-time payment status updates
     const token = localStorage.getItem("authToken")
     if (token) {
-      const socket = new WebSocket("wss://blogbackend-crimson-frog-3248.fly.dev/ws/payments/")
+      const socket = new WebSocket("ws://blogbackend-crimson-frog-3248.fly.dev/ws/payments/")
 
       socket.onopen = () => {
         console.log("WebSocket connection established for payment verification")
