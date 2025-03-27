@@ -30,71 +30,94 @@ export default function PaymentSuccessPage() {
     // Set up WebSocket connection for real-time payment status updates
     const token = localStorage.getItem("authToken")
     if (token) {
-      const socket = new WebSocket("ws://blogbackend-crimson-frog-3248.fly.dev/ws/payments/")
+      // Determine WebSocket URL based on current environment
+      // Use ws:// for localhost, wss:// for production
+      const isLocalhost = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+      const wsProtocol = isLocalhost ? "ws://" : "wss://"
+      const wsBaseUrl = isLocalhost ? "127.0.0.1:8000" : "blogbackend-crimson-frog-3248.fly.dev"
+      const wsUrl = `${wsProtocol}${wsBaseUrl}/ws/payments/`
 
-      socket.onopen = () => {
-        console.log("WebSocket connection established for payment verification")
-        // Send authentication token and reference to identify the payment
-        socket.send(JSON.stringify({ token, reference }))
-      }
+      console.log(`Connecting to WebSocket at: ${wsUrl}`)
 
-      socket.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data)
-          console.log("Payment WebSocket message received:", data)
+      let socket: WebSocket | null = null
 
-          // Clear the timeout since we received a response
-          if (timeoutId) {
-            clearTimeout(timeoutId)
-          }
+      try {
+        socket = new WebSocket(wsUrl)
 
-          if (data.status === "success") {
-            setVerificationStatus("success")
-            setMessage(data.message || "Payment verified successfully! Your subscription is now active.")
+        socket.onopen = () => {
+          console.log("WebSocket connection established for payment verification")
+          // Send authentication token and reference to identify the payment
+          socket.send(JSON.stringify({ token, reference }))
+        }
 
-            // Update local storage to reflect subscription status
-            try {
-              const userDataStr = localStorage.getItem("userData")
-              const userData = userDataStr ? JSON.parse(userDataStr) : {}
-              localStorage.setItem(
-                "userData",
-                JSON.stringify({
-                  ...userData,
-                  has_active_subscription: true,
-                }),
-              )
-            } catch (storageError) {
-              console.error("Error updating user data in localStorage:", storageError)
+        socket.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data)
+            console.log("Payment WebSocket message received:", data)
+
+            // Clear the timeout since we received a response
+            if (timeoutId) {
+              clearTimeout(timeoutId)
             }
 
-            toast({
-              title: "Payment Successful",
-              description: "Your subscription has been activated successfully.",
-              variant: "default",
-            })
-          } else if (data.status === "failed") {
-            setVerificationStatus("error")
-            setMessage(data.message || "Payment verification failed. Please contact support.")
+            if (data.status === "success") {
+              setVerificationStatus("success")
+              setMessage(data.message || "Payment verified successfully! Your subscription is now active.")
 
-            toast({
-              title: "Verification Failed",
-              description: data.message || "There was an issue verifying your payment.",
-              variant: "destructive",
-            })
+              // Update local storage to reflect subscription status
+              try {
+                const userDataStr = localStorage.getItem("userData")
+                const userData = userDataStr ? JSON.parse(userDataStr) : {}
+                localStorage.setItem(
+                  "userData",
+                  JSON.stringify({
+                    ...userData,
+                    has_active_subscription: true,
+                  }),
+                )
+              } catch (storageError) {
+                console.error("Error updating user data in localStorage:", storageError)
+              }
+
+              toast({
+                title: "Payment Successful",
+                description: "Your subscription has been activated successfully.",
+                variant: "default",
+              })
+            } else if (data.status === "failed") {
+              setVerificationStatus("error")
+              setMessage(data.message || "Payment verification failed. Please contact support.")
+
+              toast({
+                title: "Verification Failed",
+                description: data.message || "There was an issue verifying your payment.",
+                variant: "destructive",
+              })
+            }
+          } catch (error) {
+            console.error("Error parsing WebSocket message:", error)
           }
-        } catch (error) {
-          console.error("Error parsing WebSocket message:", error)
         }
-      }
 
-      socket.onerror = (error) => {
-        console.error("WebSocket error:", error)
+        socket.onerror = (error) => {
+          console.error("WebSocket error:", error)
+          setVerificationStatus("error")
+          setMessage("Connection error. Please try again or contact support.")
+        }
+
+        socket.onclose = (event) => {
+          console.log("WebSocket connection closed:", event.code, event.reason)
+
+          // If the connection was closed abnormally and we're still loading, show an error
+          if (event.code !== 1000 && verificationStatus === "loading") {
+            setVerificationStatus("error")
+            setMessage("Connection to payment server was lost. Please refresh the page or contact support.")
+          }
+        }
+      } catch (error) {
+        console.error("Error creating WebSocket:", error)
         setVerificationStatus("error")
-        setMessage("Connection error. Please try again or contact support.")
-      }
-
-      socket.onclose = (event) => {
-        console.log("WebSocket connection closed:", event.code, event.reason)
+        setMessage("Failed to connect to payment verification server. Please try again later.")
       }
 
       // Set a timeout to handle cases where the user might have canceled the payment
@@ -120,11 +143,15 @@ export default function PaymentSuccessPage() {
           clearTimeout(timeoutId)
         }
 
-        if (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING) {
+        if (socket && (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING)) {
           console.log("Closing WebSocket connection")
           socket.close()
         }
       }
+    } else {
+      // No auth token available
+      setVerificationStatus("error")
+      setMessage("Authentication required. Please log in to verify your payment.")
     }
   }, [searchParams, toast, verificationStatus])
 
