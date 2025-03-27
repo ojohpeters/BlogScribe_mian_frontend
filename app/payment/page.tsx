@@ -48,7 +48,7 @@ export default function Payment() {
       if (!planId) {
         // If no plan_id is provided, fetch all plans and select the first one
         try {
-          const response = await fetch("http://127.0.0.1:8000/api/subscription/plans/", {
+          const response = await fetch("https://blogbackend-crimson-frog-3248.fly.dev/api/subscription/plans/", {
             headers: {
               Authorization: `Bearer ${token}`,
             },
@@ -75,7 +75,7 @@ export default function Payment() {
       } else {
         // If plan_id is provided, fetch that specific plan
         try {
-          const response = await fetch(`http://127.0.0.1:8000/api/subscription/plan/${planId}/`, {
+          const response = await fetch(`https://blogbackend-crimson-frog-3248.fly.dev/api/subscription/plan/${planId}/`, {
             headers: {
               Authorization: `Bearer ${token}`,
             },
@@ -116,7 +116,7 @@ export default function Payment() {
       const token = localStorage.getItem("authToken")
 
       // Send a POST request to initiate Paystack payment
-      const response = await fetch("http://127.0.0.1:8000/api/subscription/paystack/initiate/", {
+      const response = await fetch("https://blogbackend-crimson-frog-3248.fly.dev/api/subscription/paystack/initiate/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
