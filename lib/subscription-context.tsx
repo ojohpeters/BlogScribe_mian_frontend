@@ -90,7 +90,6 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
         setHasActivePlan(false)
       }
     } catch (error) {
-      console.error("Error fetching subscription data:", error)
       setSubscription(null)
       setHasActivePlan(false)
     }
@@ -114,7 +113,6 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
         // Fetch subscription details
         await refreshSubscription()
       } catch (error) {
-        console.error("Error checking subscription:", error)
         setHasSubscribedBefore(false)
         setHasActivePlan(false)
       } finally {

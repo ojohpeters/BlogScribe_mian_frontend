@@ -96,7 +96,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
             userData.plan_name = subscriptionData.plan?.name || null
           }
         } catch (error) {
-          console.error("Error fetching subscription details:", error)
         }
 
         setUser(userData)
@@ -107,7 +106,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
         clearUserData()
       }
     } catch (error) {
-      console.error("Error refreshing user data:", error)
     } finally {
       setLoading(false)
     }

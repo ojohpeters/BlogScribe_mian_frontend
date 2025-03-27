@@ -66,7 +66,6 @@ export default function Dashboard() {
           if (error instanceof Error && error.name === "AbortError") {
             return // Silently handle aborted requests
           }
-          console.error("Error loading activity:", error)
           // Set fallback activity data without showing error
           setUserActivity({
             id: 0,
@@ -88,7 +87,6 @@ export default function Dashboard() {
           if (error instanceof Error && error.name === "AbortError") {
             return // Silently handle aborted requests
           }
-          console.error("Error loading stats:", error)
         }
       }
 
@@ -179,7 +177,6 @@ export default function Dashboard() {
         total_paraphrased: userActivity?.paraphrased || 0,
       })
     } catch (error: unknown) {
-      console.error("Error calculating dashboard stats:", error)
       // Keep existing data if any
       if (!stats) {
         setStats({
@@ -267,7 +264,6 @@ export default function Dashboard() {
                     })
                   }
                 } catch (error) {
-                  console.error("Sync error:", error)
                   toast({
                     title: "Sync Error",
                     description: error instanceof Error ? error.message : "An unexpected error occurred during sync.",

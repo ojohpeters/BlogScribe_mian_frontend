@@ -44,7 +44,6 @@ export default function Subscription() {
         const response = await fetchWithAuth("https://blogbackend-crimson-frog-3248.fly.dev/api/subscription/details/", {}, router, toast)
 
         const data = await response.json()
-        console.log("Parsed subscription data:", data)
         setSubscription(data)
       } catch (error) {
         console.error("Error fetching subscription details:", error)

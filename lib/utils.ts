@@ -22,35 +22,28 @@ export async function handleApiResponse(response: Response, router: any, toast: 
       } else {
         // Log the raw response for debugging
         const responseText = await response.text()
-        console.error("Non-JSON response received:", responseText)
         return response
       }
 
       // Case 1: No authentication credentials provided
       if (errorData.detail === "Authentication credentials were not provided.") {
-        console.warn("401 Unauthorized - No token provided")
         return response
       }
 
       // Case 2: Token is invalid or expired
       if (errorData.code === "token_not_valid") {
-        console.warn("401 Unauthorized - Token expired, attempting refresh...")
-
         const refreshed = await refreshToken()
         if (refreshed) {
-          console.log("Token refreshed successfully. Retrying request...")
           return { retryWithNewToken: true }
         }
 
         // Only if refresh fails, we consider it a session expiration
-        console.warn("Token refresh failed")
         return response
       }
 
       // Case 3: Other authentication issues
       return response
     } catch (error) {
-      console.error("Error handling 401 response:", error)
       return response
     }
   }
@@ -83,7 +76,6 @@ export async function refreshToken(): Promise<boolean> {
     // Check if response is JSON before trying to parse it
     const contentType = response.headers.get("content-type")
     if (!contentType || !contentType.includes("application/json")) {
-      console.error("Non-JSON response received:", await response.text())
       return false
     }
 
@@ -97,7 +89,6 @@ export async function refreshToken(): Promise<boolean> {
 
     return false
   } catch (error) {
-    console.error("Error refreshing token:", error)
     return false
   }
 }
@@ -155,7 +146,6 @@ export async function fetchWithAuth(url: string, options: RequestInit = {}, rout
 
           // Check if it's a token expiration error
           if (errorData.code === "token_not_valid") {
-            console.log("Token expired, attempting to refresh...")
 
             // Try to refresh the token
             const refreshed = await refreshToken()
@@ -172,7 +162,6 @@ export async function fetchWithAuth(url: string, options: RequestInit = {}, rout
               })
             } else {
               // Refresh failed, return 401 without redirecting
-              console.warn("Token refresh failed")
               return new Response(JSON.stringify({ error: "Token refresh failed" }), {
                 status: 401,
                 headers: { "Content-Type": "application/json" },
@@ -181,13 +170,11 @@ export async function fetchWithAuth(url: string, options: RequestInit = {}, rout
           }
         }
       } catch (parseError) {
-        console.error("Error parsing 401 response:", parseError)
       }
     }
 
     return response
   } catch (error) {
-    console.error("Error in fetchWithAuth:", error)
     return new Response(JSON.stringify({ error: "Network error" }), {
       status: 500,
       headers: { "Content-Type": "application/json" },
@@ -212,7 +199,6 @@ export async function hasUserSubscribedBefore(router: any, toast: any): Promise<
     // Check if response is JSON before trying to parse it
     const contentType = response.headers.get("content-type")
     if (!contentType || !contentType.includes("application/json")) {
-      console.error("Non-JSON response received:", await response.text())
       return false
     }
 
@@ -220,7 +206,6 @@ export async function hasUserSubscribedBefore(router: any, toast: any): Promise<
     // Note: has_subscribed only indicates if a user has subscribed in the past, not current status
     return userData.has_subscribed === true
   } catch (error) {
-    console.error("Error checking subscription history:", error)
     return false
   }
 }
@@ -242,7 +227,6 @@ export async function hasActiveSubscription(router: any, toast: any): Promise<bo
     // Check if response is JSON before trying to parse it
     const contentType = response.headers.get("content-type")
     if (!contentType || !contentType.includes("application/json")) {
-      console.error("Non-JSON response received:", await response.text())
       return false
     }
 
@@ -250,7 +234,6 @@ export async function hasActiveSubscription(router: any, toast: any): Promise<bo
     // Explicitly check for "active" status
     return data.status === "active"
   } catch (error) {
-    console.error("Error checking active subscription:", error)
     return false
   }
 }
@@ -271,7 +254,6 @@ export function addRecentPost(post: RecentPost) {
     localStorage.setItem("recentPosts", JSON.stringify(newPosts))
     return true
   } catch (error) {
-    console.error("Error saving recent post:", error)
     return false
   }
 }
@@ -286,13 +268,11 @@ export function getRecentPosts(): RecentPost[] {
     try {
       return JSON.parse(posts)
     } catch (parseError) {
-      console.error("Error parsing recent posts JSON:", parseError)
       // If JSON is invalid, reset it
       localStorage.removeItem("recentPosts")
       return []
     }
   } catch (error) {
-    console.error("Error getting recent posts:", error)
     return []
   }
 }

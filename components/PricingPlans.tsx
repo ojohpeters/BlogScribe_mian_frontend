@@ -55,15 +55,12 @@ export default function PricingPlans({ showFeaturedOnly = true }: PricingPlansPr
         // Check if response is JSON before trying to parse it
         const contentType = response.headers.get("content-type")
         if (!contentType || !contentType.includes("application/json")) {
-          console.error("Non-JSON response received:", await response.text())
           throw new Error("Invalid response format from server")
         }
 
         const data = await response.json()
-        console.log("Fetched subscription plans:", data)
         setPlans(data)
       } catch (error) {
-        console.error("Error fetching subscription plans:", error)
         setError("Failed to load subscription plans")
       } finally {
         setIsLoading(false)

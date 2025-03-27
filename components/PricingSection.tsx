@@ -38,10 +38,8 @@ export default function PricingSection() {
         }
 
         const data = await response.json()
-        console.log("Fetched subscription plans:", data)
         setPlans(data)
       } catch (error) {
-        console.error("Error fetching subscription plans:", error)
         setError("Failed to load subscription plans")
       } finally {
         setIsLoading(false)
