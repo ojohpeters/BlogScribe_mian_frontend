@@ -45,7 +45,7 @@ export default function Payment() {
       if (!planId) {
         // If no plan_id is provided, fetch all plans and select the first one
         try {
-          const response = await fetchWithAuth("https://blogbackend-crimson-frog-3248.fly.dev/api/subscription/plans", {}, router, toast)
+          const response = await fetchWithAuth("http://127.0.0.1:8000/api/subscription/plans", {}, router, toast)
 
           const plans = await response.json()
           if (plans && plans.length > 0) {
@@ -66,7 +66,12 @@ export default function Payment() {
       } else {
         // If plan_id is provided, fetch that specific plan
         try {
-          const response = await fetchWithAuth(`https://blogbackend-crimson-frog-3248.fly.dev/api/subscription/plans${planId ? `/${planId}` : ''}`, {}, router, toast)
+          const response = await fetchWithAuth(
+            `http://127.0.0.1:8000/api/subscription/plans${planId ? `/${planId}` : ""}`,
+            {},
+            router,
+            toast,
+          )
 
           const plan = await response.json()
           setSelectedPlan(plan)
@@ -88,6 +93,83 @@ export default function Payment() {
     fetchPlanDetails()
   }, [planId, toast, router])
 
+  // Add WebSocket connection for payment verification
+  useEffect(() => {
+    // Only initialize WebSocket if user is authenticated
+    const token = localStorage.getItem("authToken")
+    if (!token) return
+
+    // Create WebSocket connection
+    const socket = new WebSocket("wss://blogbackend-crimson-frog-3248.fly.dev/ws/payments/")
+
+    // Connection opened
+    socket.onopen = () => {
+      console.log("WebSocket connection established for payment verification")
+      // Send authentication token to identify the user
+      socket.send(JSON.stringify({ token }))
+    }
+
+    // Listen for messages
+    socket.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data)
+        console.log("Payment WebSocket message received:", data)
+
+        if (data.status === "success") {
+          toast({
+            title: "Payment Successful!",
+            description: "Your subscription has been activated.",
+            variant: "default",
+          })
+
+          // Update local subscription status
+          try {
+            const userDataStr = localStorage.getItem("userData")
+            const userData = userDataStr ? JSON.parse(userDataStr) : {}
+            localStorage.setItem(
+              "userData",
+              JSON.stringify({
+                ...userData,
+                has_active_subscription: true,
+              }),
+            )
+          } catch (storageError) {
+            console.error("Error updating user data in localStorage:", storageError)
+          }
+
+          // Redirect to dashboard or payment success page
+          router.push("/payment-success")
+        } else if (data.status === "failed") {
+          toast({
+            title: "Payment Failed",
+            description: data.message || "There was an issue processing your payment.",
+            variant: "destructive",
+          })
+        }
+      } catch (error) {
+        console.error("Error parsing WebSocket message:", error)
+      }
+    }
+
+    // Connection error
+    socket.onerror = (error) => {
+      console.error("WebSocket error:", error)
+    }
+
+    // Connection closed
+    socket.onclose = (event) => {
+      console.log("WebSocket connection closed:", event.code, event.reason)
+    }
+
+    // Clean up WebSocket connection when component unmounts
+    return () => {
+      if (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING) {
+        console.log("Closing WebSocket connection")
+        socket.close()
+      }
+    }
+  }, [router, toast])
+
   const handleSubscribe = async () => {
     if (!selectedPlan) return
 
@@ -95,7 +177,7 @@ export default function Payment() {
     try {
       // Send a POST request to get the payment URL
       const response = await fetchWithAuth(
-        "https://blogbackend-crimson-frog-3248.fly.dev/api/subscription/subscribe",
+        "http://127.0.0.1:8000/api/subscription/subscribe",
         {
           method: "POST",
           headers: {

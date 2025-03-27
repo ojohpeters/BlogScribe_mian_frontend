@@ -26,6 +26,79 @@ export default function PaymentSuccessPage() {
       return
     }
 
+    // Set up WebSocket connection for real-time payment status updates
+    const token = localStorage.getItem("authToken")
+    if (token) {
+      const socket = new WebSocket("wss://blogbackend-crimson-frog-3248.fly.dev/ws/payments/")
+
+      socket.onopen = () => {
+        console.log("WebSocket connection established for payment verification")
+        // Send authentication token and reference to identify the payment
+        socket.send(JSON.stringify({ token, reference }))
+      }
+
+      socket.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data)
+          console.log("Payment WebSocket message received:", data)
+
+          if (data.status === "success") {
+            setVerificationStatus("success")
+            setMessage(data.message || "Payment verified successfully! Your subscription is now active.")
+
+            // Update local storage to reflect subscription status
+            try {
+              const userDataStr = localStorage.getItem("userData")
+              const userData = userDataStr ? JSON.parse(userDataStr) : {}
+              localStorage.setItem(
+                "userData",
+                JSON.stringify({
+                  ...userData,
+                  has_active_subscription: true,
+                }),
+              )
+            } catch (storageError) {
+              console.error("Error updating user data in localStorage:", storageError)
+            }
+
+            toast({
+              title: "Payment Successful",
+              description: "Your subscription has been activated successfully.",
+              variant: "default",
+            })
+          } else if (data.status === "failed") {
+            setVerificationStatus("error")
+            setMessage(data.message || "Payment verification failed. Please contact support.")
+
+            toast({
+              title: "Verification Failed",
+              description: data.message || "There was an issue verifying your payment.",
+              variant: "destructive",
+            })
+          }
+        } catch (error) {
+          console.error("Error parsing WebSocket message:", error)
+        }
+      }
+
+      socket.onerror = (error) => {
+        console.error("WebSocket error:", error)
+      }
+
+      socket.onclose = (event) => {
+        console.log("WebSocket connection closed:", event.code, event.reason)
+      }
+
+      // Clean up WebSocket connection when component unmounts
+      return () => {
+        if (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING) {
+          console.log("Closing WebSocket connection")
+          socket.close()
+        }
+      }
+    }
+
+    // Also keep the existing HTTP verification as a fallback
     const verifyPayment = async () => {
       try {
         // Get auth token from localStorage
@@ -37,7 +110,7 @@ export default function PaymentSuccessPage() {
           return
         }
 
-        const response = await fetch("https://blogbackend-crimson-frog-3248.fly.dev/api/subscription/paystack/verify/", {
+        const response = await fetch("https://blogbackend-crimson-frog-3248.fly.dev/api/paystack/verify/", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
