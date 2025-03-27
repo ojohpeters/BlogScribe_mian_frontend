@@ -67,26 +67,14 @@ export default function ContactPage() {
     setIsSubmitting(true)
 
     try {
-      // First try the local API endpoint
-      let response
-      try {
-        response = await fetch("/api/contact/", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(values),
-        })
-      } catch (error) {
-        // If local endpoint fails, try the remote endpoint
-        response = await fetch("https://blogbackend-crimson-frog-3248.fly.dev/api/contact/", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(values),
-        })
-      }
+      // Only post to the specified remote endpoint
+      const response = await fetch("https://blogbackend-crimson-frog-3248.fly.dev/api/contact/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(values),
+      })
 
       if (!response.ok) {
         throw new Error("Failed to submit contact form")
