@@ -119,6 +119,7 @@ export function DesktopNav({ onLogout }: DesktopNavProps) {
     { href: "/", label: "Home" },
     { href: "/pricing", label: "Pricing" },
     { href: "/contact", label: "Contact" },
+    { href: "/how-to-use", label: "How TO Use" },
   ]
 
   // Update the routes array to ensure proper navigation
@@ -128,6 +129,7 @@ export function DesktopNav({ onLogout }: DesktopNavProps) {
     { href: "/fetched-posts", label: "Fetched Posts" },
     { href: "/url-paraphraser", label: "URL Paraphraser" },
     { href: "/contact", label: "Contact" },
+    { href: "/how-to-use", label: "How TO Use" },
   ]
 
   const routes = isAuthenticated ? authRoutes : publicRoutes

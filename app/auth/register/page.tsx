@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
 import { useToast } from "@/components/ui/use-toast"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Eye, EyeOff, AlertTriangle } from "lucide-react"
+import { Eye, EyeOff, AlertTriangle, HelpCircle } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 
 export default function Register() {
@@ -106,7 +106,16 @@ export default function Register() {
     <div className="flex min-h-screen items-center justify-center px-4 py-6 sm:px-6 lg:px-8">
       <Card className="w-full max-w-[450px] mx-auto">
         <CardHeader className="space-y-2">
-          <CardTitle className="text-2xl font-bold tracking-tight">Register</CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-2xl font-bold tracking-tight">Register</CardTitle>
+            <Link
+              href="/how-to-use"
+              className="flex items-center text-sm text-primary hover:text-primary/80 transition-colors"
+            >
+              <HelpCircle className="h-4 w-4 mr-1" />
+              How to use
+            </Link>
+          </div>
           <CardDescription>
             Create a new account
             {returnUrl !== "/auth/login" && (
@@ -258,15 +267,23 @@ export default function Register() {
           <Button className="w-full h-11 text-base" onClick={handleRegister} disabled={isSubmitting}>
             {isSubmitting ? "Registering..." : "Register"}
           </Button>
-          <p className="text-sm text-center text-muted-foreground">
-            Already have an account?{" "}
-            <Link
-              href={`/auth/login${returnUrl !== "/auth/login" ? `?returnUrl=${encodeURIComponent(returnUrl)}` : ""}`}
-              className="text-primary hover:underline font-medium"
-            >
-              Log in
-            </Link>
-          </p>
+          <div className="text-center">
+            <p className="text-sm text-muted-foreground">
+              Not sure how to get started?{" "}
+              <Link href="/how-to-use" className="text-primary hover:underline font-medium">
+                View our guide
+              </Link>
+            </p>
+            <p className="text-sm text-muted-foreground mt-2">
+              Already have an account?{" "}
+              <Link
+                href={`/auth/login${returnUrl !== "/auth/login" ? `?returnUrl=${encodeURIComponent(returnUrl)}` : ""}`}
+                className="text-primary hover:underline font-medium"
+              >
+                Log in
+              </Link>
+            </p>
+          </div>
         </CardFooter>
       </Card>
     </div>
