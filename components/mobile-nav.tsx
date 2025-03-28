@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { usePathname, useRouter } from "next/navigation"
-import { Home, CreditCard, User, Menu, FileText, RefreshCw, FileEdit } from "lucide-react"
+import { Home, CreditCard, User, Menu, FileText, RefreshCw, FileEdit, Mail } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
@@ -33,6 +33,7 @@ export function MobileNav({ items }: MobileNavProps) {
   const publicRoutes = [
     { href: "/", label: "Home", icon: Home },
     { href: "/pricing", label: "Pricing", icon: CreditCard },
+    { href: "/contact", label: "Contact", icon: Mail },
     { href: "/auth/login", label: "Login", icon: User },
   ]
 

@@ -118,6 +118,7 @@ export function DesktopNav({ onLogout }: DesktopNavProps) {
   const publicRoutes = [
     { href: "/", label: "Home" },
     { href: "/pricing", label: "Pricing" },
+    { href: "/contact", label: "Contact" },
   ]
 
   // Update the routes array to ensure proper navigation
