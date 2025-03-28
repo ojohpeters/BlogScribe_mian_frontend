@@ -10,13 +10,15 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
 import { useToast } from "@/components/ui/use-toast"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Eye, EyeOff } from "lucide-react"
+import { Eye, EyeOff, AlertTriangle } from "lucide-react"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 
 export default function Register() {
   const [username, setUsername] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [wordpressUsername, setWordpressUsername] = useState("")
+  const [wordpressUsernameConfirm, setWordpressUsernameConfirm] = useState("")
   const [wordpressPassword, setWordpressPassword] = useState("")
   const [wordpressUrl, setWordpressUrl] = useState("")
   const [agreedToTerms, setAgreedToTerms] = useState(false)
@@ -38,6 +40,12 @@ export default function Register() {
     // Validate terms agreement
     if (!agreedToTerms) {
       setErrors({ terms: ["You must agree to the Terms and Conditions"] })
+      return
+    }
+
+    // Validate WordPress username confirmation
+    if (wordpressUsername !== wordpressUsernameConfirm) {
+      setErrors({ wordpress_username_confirm: ["WordPress usernames do not match"] })
       return
     }
 
@@ -69,7 +77,8 @@ export default function Register() {
 
       toast({
         title: "Registration successful",
-        description: "Your account has been created. Please log in.",
+        description:
+          "Your account has been created. Please check your email (including spam folder) for a verification link.",
       })
 
       // Redirect to login with the return URL preserved
@@ -154,6 +163,14 @@ export default function Register() {
                 </div>
                 {errors.password && <p className="text-sm text-destructive">{errors.password[0]}</p>}
               </div>
+
+              <Alert variant="warning" className="bg-amber-50 border-amber-200">
+                <AlertTriangle className="h-4 w-4 text-amber-600" />
+                <AlertDescription className="text-amber-800 text-sm">
+                  WordPress username cannot be changed after registration. Please enter it carefully.
+                </AlertDescription>
+              </Alert>
+
               <div className="space-y-2">
                 <Input
                   id="wordpress_username"
@@ -167,6 +184,21 @@ export default function Register() {
                   <p className="text-sm text-destructive">{errors.wordpress_username[0]}</p>
                 )}
               </div>
+
+              <div className="space-y-2">
+                <Input
+                  id="wordpress_username_confirm"
+                  placeholder="Confirm WordPress Username"
+                  value={wordpressUsernameConfirm}
+                  onChange={(e) => setWordpressUsernameConfirm(e.target.value)}
+                  required
+                  className="h-11"
+                />
+                {errors.wordpress_username_confirm && (
+                  <p className="text-sm text-destructive">{errors.wordpress_username_confirm[0]}</p>
+                )}
+              </div>
+
               <div className="space-y-2">
                 <div className="relative">
                   <Input
