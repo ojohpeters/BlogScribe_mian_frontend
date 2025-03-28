@@ -44,6 +44,7 @@ export function MobileNav({ items }: MobileNavProps) {
     { href: "/dashboard/profile", label: "Profile", icon: User },
     { href: "/url-paraphraser", label: "URL Paraphraser", icon: RefreshCw },
     { href: "/dashboard/subscription", label: "Subscription", icon: CreditCard },
+    { href: "/contact", label: "Contact", icon: Mail },
   ]
 
   // Prevent hydration mismatch

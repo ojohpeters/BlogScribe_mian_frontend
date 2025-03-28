@@ -127,6 +127,7 @@ export function DesktopNav({ onLogout }: DesktopNavProps) {
     { href: "/make-post", label: "Make Post" },
     { href: "/fetched-posts", label: "Fetched Posts" },
     { href: "/url-paraphraser", label: "URL Paraphraser" },
+    { href: "/contact", label: "Contact" },
   ]
 
   const routes = isAuthenticated ? authRoutes : publicRoutes
