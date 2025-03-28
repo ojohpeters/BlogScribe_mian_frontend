@@ -41,12 +41,41 @@ export default function Subscription() {
       console.log("Fetching subscription details...")
 
       try {
-        const response = await fetchWithAuth("https://blogbackend-crimson-frog-3248.fly.dev/api/subscription/details/", {}, router, toast)
+        const response = await fetchWithAuth(
+          "https://blogbackend-crimson-frog-3248.fly.dev/api/subscription/details/",
+          {},
+          router,
+          toast,
+        )
+
+        // Check if the response is ok before parsing
+        if (!response.ok) {
+          const errorData = await response.json()
+          console.log("Subscription API error:", errorData)
+
+          // If the error is "No active subscription", handle it gracefully
+          if (errorData.error === "No active subscription") {
+            setSubscription(null)
+            return
+          }
+
+          throw new Error(errorData.error || "Failed to fetch subscription details")
+        }
 
         const data = await response.json()
+
+        // Validate that the data has the expected structure
+        if (!data || !data.plan) {
+          console.error("Invalid subscription data format:", data)
+          setSubscription(null)
+          return
+        }
+
         setSubscription(data)
       } catch (error) {
         console.error("Error fetching subscription details:", error)
+        setSubscription(null)
+
         if (!(error instanceof Error && error.message === "Session expired")) {
           toast({
             title: "Error fetching subscription",
