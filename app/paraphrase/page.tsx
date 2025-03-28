@@ -141,6 +141,8 @@ const debugObject = (obj: any, label: string) => {
 }
 
 export default function Paraphrase() {
+  // Component state and functions...
+  console.log("Rendering Paraphrase component")
   const [content, setContent] = useState("")
   const [originalTitle, setOriginalTitle] = useState("")
   const [originalUrl, setOriginalUrl] = useState("")
@@ -804,6 +806,7 @@ export default function Paraphrase() {
     return <div className={`text-xs px-2 py-1 rounded-full ${color}`}>{score}/100</div>
   }
 
+  // Check if component is in initializing state
   if (isInitializing) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
