@@ -65,18 +65,14 @@ const toolbarItems = [
   "fullscreen",
 ]
 
-// Update the ParaphrasedContent interface to include flat structure SEO fields
 interface ParaphrasedContent {
   success?: boolean
   paraphrased_content?: string
   Post?: string
   Paraphrased?: string
-  content?: string
   title?: string
   url?: string
   error?: string
-  meta_description?: string
-  focus_keywords?: string[]
   seo?: {
     content?: string
     title?: string
@@ -141,8 +137,6 @@ const debugObject = (obj: any, label: string) => {
 }
 
 export default function Paraphrase() {
-  // Component state and functions...
-  console.log("Rendering Paraphrase component")
   const [content, setContent] = useState("")
   const [originalTitle, setOriginalTitle] = useState("")
   const [originalUrl, setOriginalUrl] = useState("")
@@ -230,8 +224,6 @@ export default function Paraphrase() {
           setContent(parsedContent.paraphrased_content)
         } else if (parsedContent.Post) {
           setContent(parsedContent.Post)
-        } else if (parsedContent.content) {
-          setContent(parsedContent.content)
         }
 
         // Set original title and URL if available
@@ -242,35 +234,14 @@ export default function Paraphrase() {
           setOriginalUrl(parsedContent.url)
         }
 
-        // Set SEO data if available - handle both nested and flat structures
+        // Set SEO data if available
         if (parsedContent.seo) {
-          debugObject(parsedContent.seo, "SEO data found (nested)")
+          debugObject(parsedContent.seo, "SEO data found")
           setSeoData(parsedContent.seo)
-        } else if (parsedContent.meta_description || parsedContent.focus_keywords) {
-          // Handle flat structure where SEO data is at the root level
-          debugObject(
-            {
-              meta_description: parsedContent.meta_description,
-              focus_keywords: parsedContent.focus_keywords,
-              title: parsedContent.title,
-            },
-            "SEO data found (flat structure)",
-          )
 
-          setSeoData({
-            meta_description: parsedContent.meta_description,
-            focus_keywords: parsedContent.focus_keywords,
-            title: parsedContent.title,
-            content:
-              parsedContent.content ||
-              parsedContent.Paraphrased ||
-              parsedContent.paraphrased_content ||
-              parsedContent.Post,
-          })
+          // Force a re-render by setting a dummy state
+          setActiveTab((prev) => (prev === "content" ? "content" : "content"))
         }
-
-        // Force a re-render by setting a dummy state
-        setActiveTab((prev) => (prev === "content" ? "content" : "content"))
 
         setIsInitializing(false)
       } catch (error) {
@@ -441,68 +412,26 @@ export default function Paraphrase() {
       } else if (data.Paraphrased) {
         setContent(data.Paraphrased)
 
-        // Check if SEO data is available in nested structure
+        // Check if SEO data is available
         if (data.seo) {
-          debugObject(data.seo, "SEO data received (nested)")
+          debugObject(data.seo, "SEO data received")
           setSeoData(data.seo)
-        }
-        // Check if SEO data is available in flat structure
-        else if (data.meta_description || data.focus_keywords) {
-          debugObject(
-            {
-              meta_description: data.meta_description,
-              focus_keywords: data.focus_keywords,
-              title: data.title,
-            },
-            "SEO data received (flat structure)",
-          )
 
-          setSeoData({
-            meta_description: data.meta_description,
-            focus_keywords: data.focus_keywords,
-            title: data.title,
-            content: data.Paraphrased,
-          })
+          // Force a re-render
+          setActiveTab((prev) => (prev === "content" ? "content" : "content"))
         }
-
-        // Force a re-render
-        setActiveTab((prev) => (prev === "content" ? "content" : "content"))
 
         localStorage.setItem("paraphrasedContent", JSON.stringify(data))
         toast({
           title: "Success",
           description: "Content paraphrased successfully",
         })
-      } else if (data.success || data.Post || data.content) {
+      } else if (data.success || data.Post) {
         // Update content based on response format
         if (data.paraphrased_content) {
           setContent(data.paraphrased_content)
         } else if (data.Post) {
           setContent(data.Post)
-        } else if (data.content) {
-          setContent(data.content)
-        }
-
-        // Check if SEO data is available in flat structure
-        if (data.meta_description || data.focus_keywords) {
-          debugObject(
-            {
-              meta_description: data.meta_description,
-              focus_keywords: data.focus_keywords,
-              title: data.title,
-            },
-            "SEO data received (flat structure)",
-          )
-
-          setSeoData({
-            meta_description: data.meta_description,
-            focus_keywords: data.focus_keywords,
-            title: data.title,
-            content: data.content || data.paraphrased_content || data.Post,
-          })
-
-          // Force a re-render
-          setActiveTab((prev) => (prev === "content" ? "content" : "content"))
         }
 
         // Update localStorage
@@ -806,7 +735,6 @@ export default function Paraphrase() {
     return <div className={`text-xs px-2 py-1 rounded-full ${color}`}>{score}/100</div>
   }
 
-  // Check if component is in initializing state
   if (isInitializing) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
@@ -963,7 +891,7 @@ export default function Paraphrase() {
                   ? "Optimize your content for search engines with our advanced SEO analysis"
                   : "Upgrade to the Ultimate plan to unlock advanced SEO analysis"}
               </CardDescription>
-            </CardContent>
+            </CardHeader>
             <CardContent>
               {!hasUltimatePlan ? (
                 <div className="bg-muted/50 rounded-lg p-6 text-center">
