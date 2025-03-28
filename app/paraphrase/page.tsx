@@ -307,7 +307,12 @@ export default function Paraphrase() {
   const fetchSubscriptionStatus = async () => {
     setIsLoadingSubscription(true)
     try {
-      const response = await fetchWithAuth("https://blogbackend-crimson-frog-3248.fly.dev/api/subscription/details/", {}, router, toast)
+      const response = await fetchWithAuth(
+        "https://blogbackend-crimson-frog-3248.fly.dev/api/subscription/details/",
+        {},
+        router,
+        toast,
+      )
 
       if (response.ok) {
         const data = await response.json()
@@ -463,31 +468,47 @@ export default function Paraphrase() {
     setIsAnalyzingSeo(true)
     try {
       // Extract a meta description from the content if not available
-      const extractedMetaDescription = content.split("\n").slice(2).join(" ").substring(0, 160)
+      const extractedMetaDescription =
+        content && content.length > 0 ? content.split("\n").slice(2).join(" ").substring(0, 160) : ""
 
-      // Extract potential focus keywords from the content
-      const contentWords = content.toLowerCase().split(/\s+/)
-      const stopWords = ["the", "and", "a", "an", "in", "on", "at", "to", "for", "with", "by", "of", "is", "are"]
-      const potentialKeywords = contentWords
-        .filter((word) => word.length > 3 && !stopWords.includes(word))
-        .filter((word) => /^[a-z]+$/.test(word)) // Only include words with letters
-        .reduce(
-          (acc, word) => {
-            acc[word] = (acc[word] || 0) + 1
-            return acc
-          },
-          {} as Record<string, number>,
-        )
+      // Safely extract potential focus keywords from the content
+      let extractedKeywords: string[] = []
 
-      // Get top 3 keywords
-      const extractedKeywords = Object.entries(potentialKeywords)
-        .sort(([, a], [, b]) => b - a)
-        .slice(0, 3)
-        .map(([word]) => word)
+      try {
+        if (content && content.length > 0) {
+          const contentWords = content.toLowerCase().split(/\s+/)
+          const stopWords = ["the", "and", "a", "an", "in", "on", "at", "to", "for", "with", "by", "of", "is", "are"]
 
-      // Use existing SEO data if available, otherwise use extracted data
-      const metaDescription = seoData?.meta_description || extractedMetaDescription
-      const focusKeywords = seoData?.focus_keywords || extractedKeywords
+          const potentialKeywords: Record<string, number> = {}
+          contentWords
+            .filter((word) => word && word.length > 3 && !stopWords.includes(word))
+            .filter((word) => /^[a-z]+$/.test(word)) // Only include words with letters
+            .forEach((word) => {
+              potentialKeywords[word] = (potentialKeywords[word] || 0) + 1
+            })
+
+          // Get top 3 keywords
+          extractedKeywords = Object.entries(potentialKeywords || {})
+            .sort(([, a], [, b]) => b - a)
+            .slice(0, 3)
+            .map(([word]) => word)
+        }
+      } catch (keywordError) {
+        console.error("Error extracting keywords:", keywordError)
+        extractedKeywords = []
+      }
+
+      // Safely use SEO data if available
+      const metaDescription = seoData?.meta_description || extractedMetaDescription || ""
+      const focusKeywords = seoData?.focus_keywords || extractedKeywords || []
+
+      console.log("SEO Analysis Request:", {
+        content: content ? `Length: ${content.length}` : "No content",
+        title: publishSettings.title || "No title",
+        keyword: keyword || "No keyword",
+        metaDescription: metaDescription || "No meta description",
+        focusKeywords: focusKeywords.length ? focusKeywords : "No focus keywords",
+      })
 
       const response = await fetchWithAuth(
         "https://blogbackend-crimson-frog-3248.fly.dev/api/analyze-seo/",
@@ -497,9 +518,9 @@ export default function Paraphrase() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            content,
-            title: publishSettings.title,
-            keyword,
+            content: content || "",
+            title: publishSettings.title || "",
+            keyword: keyword || "",
             meta_description: metaDescription,
             focus_keywords: focusKeywords,
           }),
@@ -519,10 +540,11 @@ export default function Paraphrase() {
             return
           }
         }
-        throw new Error("Failed to analyze SEO")
+        throw new Error(`Failed to analyze SEO: ${response.status} ${response.statusText}`)
       }
 
       const data = await response.json()
+      console.log("SEO Analysis Response:", data)
 
       if (data.error) {
         toast({
@@ -531,7 +553,17 @@ export default function Paraphrase() {
           variant: "destructive",
         })
       } else {
-        setSeoAnalysis(data)
+        // Ensure all expected properties exist in the response
+        const processedData: SeoAnalysis = {
+          score: data.score || 0,
+          suggestions: Array.isArray(data.suggestions) ? data.suggestions : [],
+          keywordDensity: data.keywordDensity || {},
+          tfidfScores: data.tfidfScores || {},
+          readabilityScore: data.readabilityScore || 0,
+          titleSuggestions: Array.isArray(data.titleSuggestions) ? data.titleSuggestions : [],
+        }
+
+        setSeoAnalysis(processedData)
         setActiveTab("seo")
         toast({
           title: "Success",
