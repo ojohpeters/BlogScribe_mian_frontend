@@ -224,7 +224,7 @@ export default function ContactPage() {
             <CardFooter className="flex flex-col sm:flex-row items-start sm:items-center justify-between border-t p-6">
               <div className="mb-4 sm:mb-0">
                 <h3 className="font-semibold mb-1">Contact Information</h3>
-                <p className="text-sm text-muted-foreground">Email: support@blogscribe.com</p>
+                <p className="text-sm text-muted-foreground">Email: blogscribe@gmail.com</p>
               </div>
               <div className="text-sm text-muted-foreground">We typically respond within 24-48 hours.</div>
             </CardFooter>
