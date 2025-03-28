@@ -35,7 +35,7 @@ export function MobileNav({ items }: MobileNavProps) {
     { href: "/pricing", label: "Pricing", icon: CreditCard },
     { href: "/contact", label: "Contact", icon: Mail },
     { href: "/auth/login", label: "Login", icon: User },
-    { href: "/how-to-use", label: "How TO Use" },
+    { href: "/how-to-use", label: "How TO Use", icon: FileText },
   ]
 
   const authRoutes = [
@@ -46,7 +46,7 @@ export function MobileNav({ items }: MobileNavProps) {
     { href: "/url-paraphraser", label: "URL Paraphraser", icon: RefreshCw },
     { href: "/dashboard/subscription", label: "Subscription", icon: CreditCard },
     { href: "/contact", label: "Contact", icon: Mail },
-    { href: "/how-to-use", label: "How TO Use" },
+    { href: "/how-to-use", label: "How TO Use", icon: FileText },
   ]
 
   // Prevent hydration mismatch
