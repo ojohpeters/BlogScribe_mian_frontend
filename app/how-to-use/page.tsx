@@ -590,48 +590,33 @@ export default function HowToUse() {
           </p>
 
           <div className="mt-16 max-w-3xl mx-auto">
-            {/* Video Tutorial Section */}
+            {/* Video Tutorial Section - YouTube Embed */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3, duration: 0.5 }}
               className="bg-gradient-to-r from-primary/10 to-primary/5 rounded-xl p-6 mb-8"
             >
-              <div className="flex flex-col md:flex-row items-center gap-6">
-                <div className="bg-black/80 rounded-lg p-2 flex items-center justify-center">
-                  <video className="w-24 h-24 md:w-32 md:h-32 rounded" poster="/placeholder.svg?height=128&width=128" />
-                  <div className="absolute">
-                    <div className="bg-primary/90 hover:bg-primary rounded-full p-3 cursor-pointer transition-all">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="24"
-                        height="24"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className="text-white"
-                      >
-                        <polygon points="5 3 19 12 5 21 5 3"></polygon>
-                      </svg>
-                    </div>
-                  </div>
-                </div>
-                <div className="text-left">
-                  <h3 className="text-xl font-bold mb-2">Watch the Complete Tutorial</h3>
-                  <p className="text-muted-foreground mb-4">
-                    See a step-by-step video walkthrough of the entire process from registration to successfully making
-                    your first post.
-                  </p>
-                  <Link href="#video-tutorial">
-                    <Button variant="outline" className="border-primary text-primary hover:bg-primary hover:text-white">
-                      Watch Video Tutorial <ArrowRight className="ml-2 h-4 w-4" />
-                    </Button>
-                  </Link>
-                </div>
+              <h3 className="text-xl font-bold mb-4 text-center">Registration Guide Video</h3>
+              <p className="text-muted-foreground mb-6 text-center max-w-2xl mx-auto">
+                Watch our quick video guide that walks you through the registration process. This video focuses
+                specifically on creating your account and setting up your WordPress connection correctly.
+              </p>
+
+              <div className="relative w-full pb-[56.25%] h-0 rounded-lg overflow-hidden shadow-lg">
+                <iframe
+                  className="absolute top-0 left-0 w-full h-full"
+                  src="https://www.youtube.com/embed/KH-4gLc2D5Y"
+                  title="BlogScribe Registration Guide"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                ></iframe>
               </div>
+
+              <p className="text-sm text-muted-foreground mt-4 text-center">
+                Note: Replace the YouTube video ID in the src URL with your actual registration guide video ID.
+              </p>
             </motion.div>
 
             {/* Latency Hint Section */}
