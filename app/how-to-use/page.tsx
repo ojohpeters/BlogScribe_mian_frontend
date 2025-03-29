@@ -115,7 +115,7 @@ export default function HowToUse() {
                           <ol className="space-y-2 text-sm text-muted-foreground ml-5 list-decimal">
                             <li>Log in to your WordPress Admin Dashboard</li>
                             <li>Go to Users On The Sidebar → All Users → Locate your Username</li>
-                            <li>Tap on your Username →Takes you to Profile Pag</li>
+                            <li>Tap on your Username →Takes you to Profile Page</li>
                             <li>Scroll down to Application Passwords section</li>
                             <li>Enter "BlogScribe" as the name</li>
                             <li>Click "Add New Application Password"</li>
@@ -297,7 +297,7 @@ export default function HowToUse() {
                     <ul className="space-y-3 text-muted-foreground">
                       <li className="flex items-start">
                         <CheckCircle className="h-5 w-5 text-primary shrink-0 mr-2 mt-0.5" />
-                        <span>Return to your WordPress Dashboard</span>
+                        <span>Return to your Dashboard</span>
                       </li>
                       <li className="flex items-start">
                         <CheckCircle className="h-5 w-5 text-primary shrink-0 mr-2 mt-0.5" />
@@ -331,7 +331,7 @@ export default function HowToUse() {
                   </p>
                   <ol className="space-y-3 ml-5 list-decimal">
                     <li className="text-muted-foreground">Go to "Fetched Posts" in the dashboard</li>
-                    <li className="text-muted-foreground">Click "Fetch Posts" to import your WordPress content</li>
+                    <li className="text-muted-foreground">Click "Fetch Posts" to get latest blog content on your selected category</li>
                     <li className="text-muted-foreground">View and select posts to paraphrase or edit</li>
                     <li className="text-muted-foreground">Use the filter options to find specific content</li>
                   </ol>
@@ -351,7 +351,8 @@ export default function HowToUse() {
                     <li className="text-muted-foreground">Select a post from your fetched content</li>
                     <li className="text-muted-foreground">Click "Paraphrase" to generate new versions</li>
                     <li className="text-muted-foreground">Review and edit the paraphrased content</li>
-                    <li className="text-muted-foreground">Publish directly to WordPress or save as draft</li>
+                    <li className="text-muted-foreground">If you are on our Ultimate Plan you will have access to our SEO Analyzer to enhance your post</li>
+                    <li className="text-muted-foreground">Publish directly to your WordPress site or save as draft</li>
                   </ol>
                 </CardContent>
               </Card>
@@ -460,13 +461,14 @@ export default function HowToUse() {
                   <AccordionTrigger className="text-lg font-medium">
                     <div className="flex items-center">
                       <AlertTriangle className="h-5 w-5 text-amber-500 mr-2" />
-                      Payment Failed
+                      Payment Failed Or Unable To Be Verified
                     </div>
                   </AccordionTrigger>
                   <AccordionContent className="text-muted-foreground space-y-3">
                     <p>Your payment could not be processed successfully.</p>
                     <h4 className="font-medium text-foreground">How to fix:</h4>
                     <ul className="space-y-2">
+                      <li>Verify Subscription Status By going to the dashboard</li>
                       <li>Check that your payment details are correct</li>
                       <li>Ensure you have sufficient funds in your account</li>
                       <li>Try a different payment method if available</li>
@@ -488,7 +490,7 @@ export default function HowToUse() {
                     <h4 className="font-medium text-foreground">How to fix:</h4>
                     <ul className="space-y-2">
                       <li>Go to the login page</li>
-                      <li>Click "Forgot Password"</li>
+                      <li>Click on th get new link button</li>
                       <li>Enter your email address</li>
                       <li>You'll receive a new email with a fresh verification link</li>
                     </ul>
@@ -614,10 +616,6 @@ export default function HowToUse() {
                   allowFullScreen
                 ></iframe>
               </div>
-
-              <p className="text-sm text-muted-foreground mt-4 text-center">
-                Note: Replace the YouTube video ID in the src URL with your actual registration guide video ID.
-              </p>
             </motion.div>
 
             {/* Latency Hint Section */}
