@@ -324,13 +324,13 @@ export default function HowToUse() {
                 <CardContent className="p-6">
                   <h3 className="text-xl font-bold mb-4 flex items-center">
                     <Globe className="h-6 w-6 mr-2 text-primary" />
-                    Fetching WordPress Posts
+                    Fetching Blog Posts
                   </h3>
                   <p className="text-muted-foreground mb-4">
-                    Easily import your existing WordPress content for paraphrasing and management.
+                    Easily import existing Blog contents for paraphrasing and management.
                   </p>
                   <ol className="space-y-3 ml-5 list-decimal">
-                    <li className="text-muted-foreground">Go to "Fetched Posts" in the dashboard</li>
+                    <li className="text-muted-foreground">Go to "Make Post" in the Navbar</li>
                     <li className="text-muted-foreground">Click "Fetch Posts" to get latest blog content on your selected category</li>
                     <li className="text-muted-foreground">View and select posts to paraphrase or edit</li>
                     <li className="text-muted-foreground">Use the filter options to find specific content</li>
