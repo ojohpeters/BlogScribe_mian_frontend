@@ -114,7 +114,8 @@ export default function HowToUse() {
                         <AccordionContent>
                           <ol className="space-y-2 text-sm text-muted-foreground ml-5 list-decimal">
                             <li>Log in to your WordPress Admin Dashboard</li>
-                            <li>Go to Users → Profile</li>
+                            <li>Go to Users On The Sidebar → All Users → Locate your Username</li>
+                            <li>Tap on your Username →Takes you to Profile Pag</li>
                             <li>Scroll down to Application Passwords section</li>
                             <li>Enter "BlogScribe" as the name</li>
                             <li>Click "Add New Application Password"</li>
