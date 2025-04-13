@@ -136,6 +136,12 @@ const debugObject = (obj: any, label: string) => {
   console.log(`----- END ${label} -----`)
 }
 
+// Add a function to validate image size
+const validateImageSize = (file: File, maxSizeKB = 250): boolean => {
+  const fileSizeKB = file.size / 1024
+  return fileSizeKB <= maxSizeKB
+}
+
 export default function Paraphrase() {
   const [content, setContent] = useState("")
   const [originalTitle, setOriginalTitle] = useState("")
@@ -639,6 +645,16 @@ export default function Paraphrase() {
       return
     }
 
+    // Check image size before uploading
+    if (publishSettings.featuredImage && !validateImageSize(publishSettings.featuredImage)) {
+      toast({
+        title: "Image Too Large",
+        description: "Your featured image exceeds the 250 KB size limit. Please resize it and try again.",
+        variant: "destructive",
+      })
+      return
+    }
+
     setIsPublishing(true)
     try {
       const formData = new FormData()
@@ -707,6 +723,29 @@ export default function Paraphrase() {
       }
     } catch (error) {
       console.error("Publish error:", error)
+
+      // Check if this is an image size error
+      if (error instanceof Error && error.message.includes("Image upload failed")) {
+        try {
+          // Try to parse the error details
+          const errorDetails = JSON.parse(error.message.split("details\t")[1])
+          if (
+            errorDetails.code === "rest_upload_unknown_error" &&
+            errorDetails.message.includes("resize to less than 250 KB")
+          ) {
+            toast({
+              title: "Image Too Large",
+              description: "Your featured image exceeds the 250 KB size limit. Please resize it and try again.",
+              variant: "destructive",
+            })
+            return
+          }
+        } catch (parseError) {
+          // If we can't parse the error, fall back to the generic message
+          console.error("Error parsing error details:", parseError)
+        }
+      }
+
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to publish post",
